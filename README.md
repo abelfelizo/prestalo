@@ -1,4 +1,0 @@
-# prestalo
-# prestalo
-# prestalo
-# prestalo
