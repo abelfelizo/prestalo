@@ -1,13 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getPrestamo } from '@/api/prestamos'
 import { registrarPago } from '@/api/pagos'
+import { getConfigCartera } from '@/api/config'
 import {
   capitalDeCuota,
   interesDeProximaCuota,
   desglosarPago,
+  calcularMora,
   diasMora,
   type TipoPagoApp,
 } from '@/lib/calculos'
@@ -38,9 +40,37 @@ export default function RegistrarPago() {
     enabled: !!id,
   })
 
+  const { data: config } = useQuery({
+    queryKey: ['config', carteraId],
+    queryFn: () => getConfigCartera(carteraId!),
+    enabled: !!carteraId,
+  })
+
   const [tipo, setTipo] = useState<TipoPagoApp>('cuota_completa')
   const [montoIngresado, setMontoIngresado] = useState('')
   const [mora, setMora] = useState('')
+  const [moraTocada, setMoraTocada] = useState(false)
+
+  // Pre-llena la mora sugerida según la configuración de la cartera (editable)
+  useEffect(() => {
+    if (!prestamo || moraTocada || config === undefined) return
+    const atraso = diasMora(prestamo.fecha_proximo_pago)
+    const capCuota = capitalDeCuota(Number(prestamo.monto_capital), prestamo.num_cuotas)
+    const intCuota = interesDeProximaCuota({
+      capital: Number(prestamo.monto_capital),
+      tasa: Number(prestamo.tasa_interes),
+      modelo: prestamo.modelo_interes as ModeloInteres,
+      numCuotas: prestamo.num_cuotas,
+      frecuencia: prestamo.frecuencia_cobro as Frecuencia,
+      cuotasPagadas: prestamo.cuotas_pagadas,
+    })
+    const sugerida = calcularMora(config ?? null, atraso, {
+      saldo: Number(prestamo.saldo_pendiente),
+      capital: Number(prestamo.monto_capital),
+      cuota: capCuota + intCuota,
+    })
+    if (sugerida > 0) setMora(String(sugerida))
+  }, [prestamo, config, moraTocada])
 
   const desglose = useMemo(() => {
     if (!prestamo) return null
@@ -155,8 +185,20 @@ export default function RegistrarPago() {
         <View style={s.row}><Text style={s.rowLabel}>Saldo después</Text><Text style={s.rowVal}>{f(desglose.saldo_despues)}</Text></View>
       </View>
 
-      <Text style={s.label}>Mora a cobrar (opcional)</Text>
-      <TextInput style={s.input} value={mora} onChangeText={setMora} placeholder="0" placeholderTextColor="#bbb" keyboardType="numeric" />
+      <Text style={s.label}>Mora a cobrar</Text>
+      <TextInput
+        style={s.input}
+        value={mora}
+        onChangeText={(t) => { setMora(t); setMoraTocada(true) }}
+        placeholder="0"
+        placeholderTextColor="#bbb"
+        keyboardType="numeric"
+      />
+      <Text style={s.hint}>
+        {config?.aplica_mora
+          ? `Sugerida automáticamente por la config de la cartera (${atraso} días de atraso). Puedes ajustarla.`
+          : 'Mora manual. Actívala en Ajustes → Configuración de mora para calcularla sola.'}
+      </Text>
 
       <TouchableOpacity style={s.btn} onPress={confirmar} disabled={mut.isPending}>
         {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Confirmar pago</Text>}
@@ -179,6 +221,7 @@ const s = StyleSheet.create({
   chipText: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
   chipTextSel: { color: '#fff' },
   input: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, fontSize: 15, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
+  hint: { fontSize: 12, color: COLORS.textLight, marginTop: 6 },
   box: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 16, marginTop: 18 },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   rowLabel: { fontSize: 14, color: COLORS.textLight },

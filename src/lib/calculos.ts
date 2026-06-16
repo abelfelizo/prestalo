@@ -163,6 +163,52 @@ export function desglosarPago(params: {
   }
 }
 
+export interface ConfigMora {
+  aplica_mora: boolean
+  tipo_mora: string | null
+  valor_mora: number | null
+  dias_gracia: number
+  mora_maxima: number | null
+  aplica_mora_sobre: string
+}
+
+/**
+ * Calcula la mora sugerida según la configuración de la cartera y los días de atraso.
+ * El prestamista puede sobrescribir el resultado en la pantalla de pago.
+ */
+export function calcularMora(
+  config: ConfigMora | null,
+  diasAtraso: number,
+  bases: { saldo: number; capital: number; cuota: number },
+): number {
+  if (!config || !config.aplica_mora) return 0
+  const diasEfectivos = Math.max(diasAtraso - (config.dias_gracia || 0), 0)
+  if (diasEfectivos <= 0) return 0
+
+  const valor = Number(config.valor_mora || 0)
+  const base =
+    config.aplica_mora_sobre === 'monto_original'
+      ? bases.capital
+      : config.aplica_mora_sobre === 'cuota'
+        ? bases.cuota
+        : bases.saldo
+
+  let mora = 0
+  switch (config.tipo_mora) {
+    case 'porcentaje_diario':
+      mora = base * (valor / 100) * diasEfectivos
+      break
+    case 'porcentaje_semanal':
+      mora = base * (valor / 100) * Math.ceil(diasEfectivos / 7)
+      break
+    case 'monto_fijo':
+      mora = valor
+      break
+  }
+  if (config.mora_maxima != null) mora = Math.min(mora, Number(config.mora_maxima))
+  return Math.round(mora * 100) / 100
+}
+
 /** Días de atraso respecto a la fecha de próximo pago. */
 export function diasMora(fechaProximoPago: string | null): number {
   if (!fechaProximoPago) return 0
