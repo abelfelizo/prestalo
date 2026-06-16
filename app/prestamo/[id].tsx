@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getPrestamo, otorgarProrroga } from '@/api/prestamos'
@@ -99,6 +99,13 @@ export default function DetallePrestamo() {
             <Text style={s.itemTitle}>{g.tipo}</Text>
             {!!g.descripcion && <Text style={s.itemSub}>{g.descripcion}</Text>}
             <Text style={s.itemSub}>{g.estado}</Text>
+            {!!g.foto_urls?.length && (
+              <View style={s.fotos}>
+                {g.foto_urls.map((url) => (
+                  <Image key={url} source={{ uri: url }} style={s.foto} />
+                ))}
+              </View>
+            )}
           </View>
         ))
       )}
@@ -159,6 +166,8 @@ const s = StyleSheet.create({
   itemTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text },
   itemSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
   empty: { color: COLORS.textLight, fontSize: 13 },
+  fotos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  foto: { width: 64, height: 64, borderRadius: 8, backgroundColor: COLORS.surface },
   link: { color: COLORS.info, fontWeight: '600', marginTop: 8, fontSize: 14 },
   cancel: { textAlign: 'center', color: COLORS.textLight, marginTop: 24, fontSize: 14 },
 })

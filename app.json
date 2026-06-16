@@ -24,7 +24,11 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        { "photosPermission": "Préstalo necesita acceso a tus fotos para adjuntar garantías." }
+      ]
     ],
     "scheme": "prestalo"
   }

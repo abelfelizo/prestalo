@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Image } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation } from '@tanstack/react-query'
+import * as ImagePicker from 'expo-image-picker'
 import { crearGarantia } from '@/api/garantias'
+import { subirFotoGarantia } from '@/lib/upload'
 import { queryClient } from '@/lib/queryClient'
 import { COLORS } from '@/lib/constants'
 
@@ -13,6 +15,22 @@ export default function NuevaGarantia() {
   const { prestamoId } = useLocalSearchParams<{ prestamoId: string }>()
   const [tipo, setTipo] = useState<(typeof TIPOS)[number]>('cedula')
   const [descripcion, setDescripcion] = useState('')
+  const [fotos, setFotos] = useState<string[]>([])
+  const [subiendo, setSubiendo] = useState(false)
+
+  async function agregarFoto() {
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.6 })
+    if (r.canceled || !r.assets?.[0]) return
+    setSubiendo(true)
+    try {
+      const url = await subirFotoGarantia(r.assets[0].uri)
+      setFotos((prev) => [...prev, url])
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'No se pudo subir la foto')
+    } finally {
+      setSubiendo(false)
+    }
+  }
 
   const mut = useMutation({
     mutationFn: () =>
@@ -22,6 +40,7 @@ export default function NuevaGarantia() {
         descripcion: descripcion.trim() || null,
         estado: 'en_poder',
         fecha_recibida: new Date().toISOString().slice(0, 10),
+        foto_urls: fotos.length ? fotos : null,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['garantias', prestamoId] })
@@ -46,7 +65,17 @@ export default function NuevaGarantia() {
       <Text style={s.label}>Descripción</Text>
       <TextInput style={s.input} value={descripcion} onChangeText={setDescripcion} placeholder="Detalle de la garantía" placeholderTextColor="#bbb" />
 
-      <TouchableOpacity style={s.btn} onPress={() => mut.mutate()} disabled={mut.isPending}>
+      <Text style={s.label}>Fotos</Text>
+      <View style={s.fotos}>
+        {fotos.map((url) => (
+          <Image key={url} source={{ uri: url }} style={s.foto} />
+        ))}
+        <TouchableOpacity style={s.addFoto} onPress={agregarFoto} disabled={subiendo}>
+          {subiendo ? <ActivityIndicator color={COLORS.primary} /> : <Text style={s.addFotoText}>＋</Text>}
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity style={s.btn} onPress={() => mut.mutate()} disabled={mut.isPending || subiendo}>
         {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Guardar garantía</Text>}
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
@@ -64,6 +93,10 @@ const s = StyleSheet.create({
   chipSel: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   chipText: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
   chipTextSel: { color: '#fff' },
+  fotos: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  foto: { width: 72, height: 72, borderRadius: 10, backgroundColor: COLORS.surface },
+  addFoto: { width: 72, height: 72, borderRadius: 10, borderWidth: 1.5, borderColor: COLORS.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface },
+  addFotoText: { fontSize: 30, color: COLORS.textLight },
   btn: { backgroundColor: COLORS.primary, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 28 },
   btnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   cancel: { textAlign: 'center', color: COLORS.textLight, marginTop: 16, fontSize: 14 },
