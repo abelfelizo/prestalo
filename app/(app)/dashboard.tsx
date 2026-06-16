@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
 import { getCobrosHoy } from '@/api/prestamos'
+import { contarNoLeidas } from '@/api/alertas'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -11,6 +12,13 @@ export default function Dashboard() {
   const router = useRouter()
   const f = useFmt()
   const carteraId = useSession((s) => s.carteraActivaId)
+  const prestamistaId = useSession((s) => s.prestamistaId)
+
+  const noLeidas = useQuery({
+    queryKey: ['alertas-count', prestamistaId],
+    queryFn: () => contarNoLeidas(prestamistaId!),
+    enabled: !!prestamistaId,
+  })
 
   const metricas = useQuery({
     queryKey: ['metricas', carteraId],
@@ -53,7 +61,15 @@ export default function Dashboard() {
       contentContainerStyle={{ padding: 16, paddingTop: 56 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refrescar} />}
     >
-      <Text style={s.title}>Préstalo</Text>
+      <View style={s.titleRow}>
+        <Text style={s.title}>Préstalo</Text>
+        <TouchableOpacity onPress={() => router.push('/alertas')} style={s.bell}>
+          <Text style={s.bellIcon}>🔔</Text>
+          {!!noLeidas.data && (
+            <View style={s.badge}><Text style={s.badgeText}>{noLeidas.data > 9 ? '9+' : noLeidas.data}</Text></View>
+          )}
+        </TouchableOpacity>
+      </View>
 
       <View style={s.hero}>
         <Text style={s.heroLabel}>Capital en la calle</Text>
@@ -95,7 +111,12 @@ export default function Dashboard() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.primary, marginBottom: 20 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
+  bell: { padding: 4 },
+  bellIcon: { fontSize: 24 },
+  badge: { position: 'absolute', top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
   hero: { backgroundColor: COLORS.primary, borderRadius: 20, padding: 24, marginBottom: 16, alignItems: 'center' },
   heroLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 6 },
   heroMonto: { fontSize: 38, fontWeight: '800', color: COLORS.gold, letterSpacing: -1 },

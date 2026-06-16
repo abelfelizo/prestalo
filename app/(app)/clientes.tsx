@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { useState } from 'react'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getClientes } from '@/api/clientes'
@@ -8,6 +9,7 @@ import { COLORS } from '@/lib/constants'
 export default function Clientes() {
   const router = useRouter()
   const carteraId = useSession((s) => s.carteraActivaId)
+  const [q, setQ] = useState('')
   const { data, isLoading } = useQuery({
     queryKey: ['clientes', carteraId],
     queryFn: () => getClientes(carteraId!),
@@ -16,7 +18,10 @@ export default function Clientes() {
 
   if (isLoading) return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
 
-  const clientes = data ?? []
+  const term = q.trim().toLowerCase()
+  const clientes = (data ?? []).filter(
+    (c) => !term || c.nombre.toLowerCase().includes(term) || (c.telefono ?? '').includes(term),
+  )
 
   return (
     <View style={s.container}>
@@ -26,6 +31,13 @@ export default function Clientes() {
           <Text style={s.addText}>+ Nuevo</Text>
         </TouchableOpacity>
       </View>
+      <TextInput
+        style={s.search}
+        value={q}
+        onChangeText={setQ}
+        placeholder="Buscar por nombre o teléfono"
+        placeholderTextColor="#bbb"
+      />
       {clientes.length === 0 ? (
         <View style={s.empty}>
           <Text style={s.emptyEmoji}>👥</Text>
@@ -62,6 +74,7 @@ const s = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
   addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10 },
   addText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  search: { marginHorizontal: 16, marginBottom: 6, backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },

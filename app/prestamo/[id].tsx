@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getPrestamo, otorgarProrroga, cancelarPrestamo } from '@/api/prestamos'
 import { getPagosDePrestamo, anularPago } from '@/api/pagos'
 import { getGarantias, devolverGarantia } from '@/api/garantias'
+import { getConfigCartera } from '@/api/config'
 import { primeraFechaPago } from '@/lib/calculos'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
@@ -22,6 +23,7 @@ export default function DetallePrestamo() {
   const prestamo = useQuery({ queryKey: ['prestamo', id], queryFn: () => getPrestamo(id), enabled: !!id })
   const pagos = useQuery({ queryKey: ['pagos', id], queryFn: () => getPagosDePrestamo(id), enabled: !!id })
   const garantias = useQuery({ queryKey: ['garantias', id], queryFn: () => getGarantias(id), enabled: !!id })
+  const config = useQuery({ queryKey: ['config', carteraId], queryFn: () => getConfigCartera(carteraId!), enabled: !!carteraId })
 
   if (prestamo.isLoading || !prestamo.data) {
     return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
@@ -127,7 +129,7 @@ export default function DetallePrestamo() {
         {!!p.clientes?.telefono && (
           <TouchableOpacity
             style={[s.action, { backgroundColor: '#25D366' }]}
-            onPress={() => cobrarPorWhatsApp(p.clientes!.telefono!, p.clientes!.nombre, Number(p.saldo_pendiente), moneda)}
+            onPress={() => cobrarPorWhatsApp(p.clientes!.telefono!, p.clientes!.nombre, Number(p.saldo_pendiente), moneda, config.data?.mensaje_mora_whatsapp)}
           >
             <Text style={s.actionText}>💬 Cobrar</Text>
           </TouchableOpacity>

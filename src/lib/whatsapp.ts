@@ -1,8 +1,23 @@
 import { Linking } from 'react-native'
 
-export function cobrarPorWhatsApp(telefono: string, nombre: string, monto: number, moneda: string) {
+/**
+ * Abre WhatsApp con un recordatorio de cobro.
+ * Si se pasa `plantilla` (de configuracion_cartera.mensaje_mora_whatsapp), se usa esa,
+ * reemplazando {nombre} y {monto}.
+ */
+export function cobrarPorWhatsApp(
+  telefono: string,
+  nombre: string,
+  monto: number,
+  moneda: string,
+  plantilla?: string | null,
+) {
   const num = telefono.replace(/\D/g, '')
-  const msg = encodeURIComponent(`Hola ${nombre}, le recordamos que tiene un pago pendiente de ${moneda} ${monto.toLocaleString()}. Por favor coordine su pago. Gracias.`)
+  const montoStr = `${moneda} ${monto.toLocaleString()}`
+  const texto = plantilla?.trim()
+    ? plantilla.replace(/\{nombre\}/g, nombre).replace(/\{monto\}/g, montoStr)
+    : `Hola ${nombre}, le recordamos que tiene un pago pendiente de ${montoStr}. Por favor coordine su pago. Gracias.`
+  const msg = encodeURIComponent(texto)
   Linking.openURL(`whatsapp://send?phone=${num}&text=${msg}`)
     .catch(() => Linking.openURL(`https://wa.me/${num}?text=${msg}`))
 }
