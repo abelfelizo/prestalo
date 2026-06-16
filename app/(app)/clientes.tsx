@@ -38,7 +38,7 @@ export default function Clientes() {
           keyExtractor={(i) => i.id}
           contentContainerStyle={{ padding: 16 }}
           renderItem={({ item }) => (
-            <TouchableOpacity style={s.card}>
+            <TouchableOpacity style={s.card} onPress={() => router.push(`/cliente/${item.id}`)}>
               <View style={s.avatar}><Text style={s.avatarText}>{item.nombre.slice(0, 2).toUpperCase()}</Text></View>
               <View style={s.info}>
                 <Text style={s.nombre}>{item.nombre}</Text>

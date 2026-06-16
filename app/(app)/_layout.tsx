@@ -21,6 +21,7 @@ export default function AppLayout() {
       <Tabs.Screen name="clientes" options={{ tabBarLabel: 'Clientes' }} />
       <Tabs.Screen name="prestamos" options={{ tabBarLabel: 'Préstamos' }} />
       <Tabs.Screen name="caja" options={{ tabBarLabel: 'Caja' }} />
+      <Tabs.Screen name="ajustes" options={{ tabBarLabel: 'Ajustes' }} />
     </Tabs>
   )
 }

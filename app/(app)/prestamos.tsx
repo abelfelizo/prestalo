@@ -39,7 +39,7 @@ export default function Prestamos() {
           keyExtractor={(i) => i.id}
           contentContainerStyle={{ padding: 16 }}
           renderItem={({ item }) => (
-            <TouchableOpacity style={s.card} onPress={() => router.push(`/pago/${item.id}`)}>
+            <TouchableOpacity style={s.card} onPress={() => router.push(`/prestamo/${item.id}`)}>
               <View style={s.cardTop}>
                 <Text style={s.clienteNombre}>{item.clientes?.nombre || 'Cliente'}</Text>
                 <View style={[s.pill, item.estado === 'en_mora' && s.pillR, item.estado === 'activo' && s.pillG]}>

@@ -14,6 +14,17 @@ export async function getPrestamos(carteraId: string): Promise<PrestamoConClient
   return (data ?? []) as unknown as PrestamoConCliente[]
 }
 
+export async function getPrestamosDeCliente(clienteId: string): Promise<PrestamoConCliente[]> {
+  const { data, error } = await supabase
+    .from('prestamos')
+    .select(SELECT_CON_CLIENTE)
+    .eq('cliente_id', clienteId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as unknown as PrestamoConCliente[]
+}
+
 export async function getPrestamo(id: string): Promise<PrestamoConCliente | null> {
   const { data, error } = await supabase
     .from('prestamos')

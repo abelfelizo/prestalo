@@ -5,6 +5,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { getPrestamo } from '@/api/prestamos'
 import { registrarPago } from '@/api/pagos'
 import { calcularPrestamo, desglosarCuota, diasMora, fmt } from '@/lib/calculos'
+import { enviarComprobante } from '@/lib/whatsapp'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -62,8 +63,23 @@ export default function RegistrarPago() {
       queryClient.invalidateQueries({ queryKey: ['cobros-hoy', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['metricas', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['prestamo', id] })
-      Alert.alert('Pago registrado', 'El saldo y la caja se actualizaron.')
-      router.back()
+      queryClient.invalidateQueries({ queryKey: ['pagos', id] })
+      const tel = prestamo?.clientes?.telefono
+      if (tel) {
+        Alert.alert('Pago registrado', '¿Enviar comprobante por WhatsApp?', [
+          { text: 'No', style: 'cancel', onPress: () => router.back() },
+          {
+            text: 'Enviar',
+            onPress: () => {
+              enviarComprobante(tel, prestamo!.clientes!.nombre, desglose!.monto_total, 'RD$')
+              router.back()
+            },
+          },
+        ])
+      } else {
+        Alert.alert('Pago registrado', 'El saldo y la caja se actualizaron.')
+        router.back()
+      }
     },
     onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo registrar el pago'),
   })
