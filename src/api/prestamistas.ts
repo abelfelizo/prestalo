@@ -35,6 +35,11 @@ export async function getCartera(id: string): Promise<Cartera | null> {
   return data
 }
 
+/** Registra actividad del prestamista (para el "interruptor de inactividad" de herederos). */
+export async function registrarActividad(prestamistaId: string): Promise<void> {
+  await supabase.from('prestamistas').update({ updated_at: new Date().toISOString() }).eq('id', prestamistaId)
+}
+
 export async function setCarteraActiva(prestamistaId: string, carteraId: string): Promise<void> {
   const { error } = await supabase
     .from('prestamistas')

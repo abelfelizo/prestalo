@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { View, ActivityIndicator } from 'react-native'
 import { getUsuarioActual } from '@/api/auth'
-import { getPrestamista, getCartera } from '@/api/prestamistas'
+import { getPrestamista, getCartera, registrarActividad } from '@/api/prestamistas'
 import { tienePinLocal } from '@/lib/pin'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -25,6 +25,7 @@ export default function Index() {
           return
         }
         setPrestamista(prest.id)
+        registrarActividad(prest.id).catch(() => {})
         setCarteraActiva(prest.cartera_activa_id)
         if (prest.cartera_activa_id) {
           const cartera = await getCartera(prest.cartera_activa_id)

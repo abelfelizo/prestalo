@@ -23,3 +23,22 @@ export async function eliminarHeredero(id: string): Promise<void> {
   const { error } = await supabase.from('herederos').delete().eq('id', id)
   if (error) throw error
 }
+
+export interface AccesoHeredero {
+  autorizado: boolean
+  dias_inactivo?: number
+  dias_requeridos?: number
+  prestamista?: string
+  capital_en_calle?: number
+  clientes?: { nombre: string; telefono: string; saldo: number }[]
+}
+
+/** Acceso del heredero: valida clave + inactividad del prestamista (función pública). */
+export async function accesoHeredero(telefono: string, claveHash: string): Promise<AccesoHeredero | null> {
+  const { data, error } = await supabase.rpc('acceso_heredero', {
+    p_telefono: telefono,
+    p_clave_hash: claveHash,
+  })
+  if (error) throw error
+  return (data as unknown as AccesoHeredero) ?? null
+}

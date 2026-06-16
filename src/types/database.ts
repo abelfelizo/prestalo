@@ -1876,6 +1876,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acceso_heredero: {
+        Args: { p_clave_hash: string; p_telefono: string }
+        Returns: Json
+      }
       anular_pago: { Args: { p_pago_id: string }; Returns: undefined }
       es_mi_cartera: { Args: { cid: string }; Returns: boolean }
       es_mi_prestamo: { Args: { pid: string }; Returns: boolean }

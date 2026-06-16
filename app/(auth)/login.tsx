@@ -81,6 +81,9 @@ export default function Login() {
           {modo === 'entrar' ? '¿No tienes cuenta? Crear una' : '¿Ya tienes cuenta? Inicia sesión'}
         </Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/heredero-acceso')}>
+        <Text style={s.heredero}>Soy heredero</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   )
 }
@@ -94,4 +97,5 @@ const s = StyleSheet.create({
   btn: { backgroundColor: COLORS.gold, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
   btnText: { fontSize: 16, fontWeight: '700', color: COLORS.primary },
   toggle: { color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginTop: 20, fontSize: 14 },
+  heredero: { color: 'rgba(201,168,76,0.8)', textAlign: 'center', marginTop: 18, fontSize: 13 },
 })

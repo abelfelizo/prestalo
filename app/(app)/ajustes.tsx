@@ -74,6 +74,9 @@ export default function Ajustes() {
       </TouchableOpacity>
 
       <Text style={s.section}>Cobranza</Text>
+      <TouchableOpacity style={s.link} onPress={() => router.push('/reportes')}>
+        <Text style={s.linkText}>📊  Reportes</Text>
+      </TouchableOpacity>
       <TouchableOpacity style={s.link} onPress={() => router.push('/config-mora')}>
         <Text style={s.linkText}>⚙️  Configuración de mora</Text>
       </TouchableOpacity>
