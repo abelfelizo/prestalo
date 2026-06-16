@@ -23,6 +23,12 @@ export async function getCarteras(prestamistaId: string): Promise<Cartera[]> {
   return data ?? []
 }
 
+export async function getCartera(id: string): Promise<Cartera | null> {
+  const { data, error } = await supabase.from('carteras').select('*').eq('id', id).maybeSingle()
+  if (error) throw error
+  return data
+}
+
 export async function setCarteraActiva(prestamistaId: string, carteraId: string): Promise<void> {
   const { error } = await supabase
     .from('prestamistas')

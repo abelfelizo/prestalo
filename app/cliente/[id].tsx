@@ -3,12 +3,15 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getCliente } from '@/api/clientes'
 import { getPrestamosDeCliente } from '@/api/prestamos'
-import { fmt } from '@/lib/calculos'
+import { useFmt } from '@/lib/useFmt'
+import { useSession } from '@/store/session'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { COLORS } from '@/lib/constants'
 
 export default function DetalleCliente() {
   const router = useRouter()
+  const f = useFmt()
+  const moneda = useSession((s) => s.moneda)
   const { id } = useLocalSearchParams<{ id: string }>()
 
   const cliente = useQuery({ queryKey: ['cliente', id], queryFn: () => getCliente(id), enabled: !!id })
@@ -33,8 +36,8 @@ export default function DetalleCliente() {
       </View>
 
       <View style={s.box}>
-        <Row label="Total prestado" val={fmt(c.total_prestado)} />
-        <Row label="Total pagado" val={fmt(c.total_pagado)} />
+        <Row label="Total prestado" val={f(c.total_prestado)} />
+        <Row label="Total pagado" val={f(c.total_pagado)} />
         <Row label="Veces atrasado" val={String(c.veces_atrasado)} />
         {!!c.cedula && <Row label="Cédula" val={c.cedula} />}
         {!!c.direccion && <Row label="Dirección" val={c.direccion} />}
@@ -43,7 +46,7 @@ export default function DetalleCliente() {
       {!!c.telefono && (
         <TouchableOpacity
           style={s.wa}
-          onPress={() => cobrarPorWhatsApp(c.telefono!, c.nombre, 0, 'RD$')}
+          onPress={() => cobrarPorWhatsApp(c.telefono!, c.nombre, 0, moneda)}
         >
           <Text style={s.waText}>💬 Escribir por WhatsApp</Text>
         </TouchableOpacity>
@@ -56,7 +59,7 @@ export default function DetalleCliente() {
         (prestamos.data ?? []).map((p) => (
           <TouchableOpacity key={p.id} style={s.item} onPress={() => router.push(`/prestamo/${p.id}`)}>
             <View style={s.itemRow}>
-              <Text style={s.itemTitle}>{fmt(p.saldo_pendiente)}</Text>
+              <Text style={s.itemTitle}>{f(p.saldo_pendiente)}</Text>
               <Text style={s.itemSub}>{p.estado}</Text>
             </View>
             <Text style={s.itemSub}>{p.cuotas_pagadas}/{p.num_cuotas} cuotas · {p.frecuencia_cobro}</Text>

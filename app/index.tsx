@@ -2,14 +2,14 @@ import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { View, ActivityIndicator } from 'react-native'
 import { getUsuarioActual } from '@/api/auth'
-import { getPrestamista } from '@/api/prestamistas'
+import { getPrestamista, getCartera } from '@/api/prestamistas'
 import { tienePinLocal } from '@/lib/pin'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
 export default function Index() {
   const router = useRouter()
-  const { setPrestamista, setCarteraActiva } = useSession()
+  const { setPrestamista, setCarteraActiva, setMoneda } = useSession()
 
   useEffect(() => {
     ;(async () => {
@@ -26,6 +26,10 @@ export default function Index() {
         }
         setPrestamista(prest.id)
         setCarteraActiva(prest.cartera_activa_id)
+        if (prest.cartera_activa_id) {
+          const cartera = await getCartera(prest.cartera_activa_id)
+          if (cartera) setMoneda(cartera.moneda)
+        }
         const tienePin = await tienePinLocal()
         router.replace(tienePin ? '/(auth)/lock' : '/(auth)/onboarding')
       } catch {

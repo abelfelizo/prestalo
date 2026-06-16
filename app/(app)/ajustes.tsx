@@ -11,7 +11,7 @@ import type { ColorCartera } from '@/types'
 
 export default function Ajustes() {
   const router = useRouter()
-  const { prestamistaId, carteraActivaId, setCarteraActiva: setActivaLocal, reset } = useSession()
+  const { prestamistaId, carteraActivaId, setCarteraActiva: setActivaLocal, setMoneda, reset } = useSession()
 
   const carteras = useQuery({
     queryKey: ['carteras', prestamistaId],
@@ -19,10 +19,11 @@ export default function Ajustes() {
     enabled: !!prestamistaId,
   })
 
-  async function cambiarCartera(id: string) {
+  async function cambiarCartera(id: string, moneda: string) {
     if (!prestamistaId) return
     await setCarteraActiva(prestamistaId, id)
     setActivaLocal(id)
+    setMoneda(moneda)
     queryClient.invalidateQueries()
     Alert.alert('Cartera activa actualizada')
   }
@@ -53,7 +54,7 @@ export default function Ajustes() {
         <ActivityIndicator color={COLORS.primary} />
       ) : (
         (carteras.data ?? []).map((c) => (
-          <TouchableOpacity key={c.id} style={s.cartera} onPress={() => cambiarCartera(c.id)}>
+          <TouchableOpacity key={c.id} style={s.cartera} onPress={() => cambiarCartera(c.id, c.moneda)}>
             <View style={[s.dot, { backgroundColor: COLOR_CARTERA[c.color as ColorCartera] ?? COLORS.primary }]} />
             <Text style={s.carteraNombre}>{c.nombre}</Text>
             <Text style={s.carteraMoneda}>{c.moneda}</Text>

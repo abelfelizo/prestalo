@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator }
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getMovimientos, getBalanceCaja } from '@/api/caja'
-import { fmt } from '@/lib/calculos'
+import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
@@ -17,6 +17,7 @@ const CAT_LABEL: Record<string, string> = {
 
 export default function Caja() {
   const router = useRouter()
+  const f = useFmt()
   const carteraId = useSession((s) => s.carteraActivaId)
 
   const balance = useQuery({
@@ -43,7 +44,7 @@ export default function Caja() {
 
       <View style={s.balanceBox}>
         <Text style={s.balanceLabel}>Balance en caja</Text>
-        <Text style={s.balanceVal}>{fmt(balance.data ?? 0)}</Text>
+        <Text style={s.balanceVal}>{f(balance.data ?? 0)}</Text>
       </View>
 
       <FlatList
@@ -61,7 +62,7 @@ export default function Caja() {
                 <Text style={s.fecha}>{item.fecha}</Text>
               </View>
               <Text style={[s.monto, { color: entrada ? COLORS.success : COLORS.danger }]}>
-                {entrada ? '+' : '−'} {fmt(item.monto)}
+                {entrada ? '+' : '−'} {f(item.monto)}
               </Text>
             </View>
           )

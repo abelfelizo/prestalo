@@ -14,6 +14,21 @@ export async function getPrestamos(carteraId: string): Promise<PrestamoConClient
   return (data ?? []) as unknown as PrestamoConCliente[]
 }
 
+/** Mueve la fecha de próximo pago (prórroga), limpia mora y deja el préstamo activo. */
+export async function otorgarProrroga(prestamoId: string, nuevaFechaProximo: string): Promise<void> {
+  const { error } = await supabase
+    .from('prestamos')
+    .update({ fecha_proximo_pago: nuevaFechaProximo, dias_en_mora: 0, estado: 'activo' })
+    .eq('id', prestamoId)
+  if (error) throw error
+}
+
+/** Marca un préstamo como refinanciado (su saldo pasa a un préstamo nuevo). */
+export async function marcarRefinanciado(prestamoId: string): Promise<void> {
+  const { error } = await supabase.from('prestamos').update({ estado: 'refinanciado' }).eq('id', prestamoId)
+  if (error) throw error
+}
+
 export async function getPrestamosDeCliente(clienteId: string): Promise<PrestamoConCliente[]> {
   const { data, error } = await supabase
     .from('prestamos')

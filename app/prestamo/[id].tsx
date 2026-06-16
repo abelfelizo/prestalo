@@ -1,15 +1,22 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { getPrestamo } from '@/api/prestamos'
+import { getPrestamo, otorgarProrroga } from '@/api/prestamos'
 import { getPagosDePrestamo } from '@/api/pagos'
 import { getGarantias } from '@/api/garantias'
-import { fmt } from '@/lib/calculos'
+import { primeraFechaPago } from '@/lib/calculos'
+import { useFmt } from '@/lib/useFmt'
+import { useSession } from '@/store/session'
+import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { COLORS } from '@/lib/constants'
+import type { Frecuencia } from '@/types'
 
 export default function DetallePrestamo() {
   const router = useRouter()
+  const f = useFmt()
+  const moneda = useSession((s) => s.moneda)
+  const carteraId = useSession((s) => s.carteraActivaId)
   const { id } = useLocalSearchParams<{ id: string }>()
 
   const prestamo = useQuery({ queryKey: ['prestamo', id], queryFn: () => getPrestamo(id), enabled: !!id })
@@ -20,6 +27,27 @@ export default function DetallePrestamo() {
     return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
   }
   const p = prestamo.data
+  const activo = p.estado === 'activo' || p.estado === 'en_mora'
+
+  async function prorrogar() {
+    const nueva = primeraFechaPago(p.fecha_proximo_pago, p.frecuencia_cobro as Frecuencia)
+    Alert.alert('Otorgar prórroga', `Mover el próximo pago a ${nueva}?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sí',
+        onPress: async () => {
+          try {
+            await otorgarProrroga(p.id, nueva)
+            queryClient.invalidateQueries({ queryKey: ['prestamo', id] })
+            queryClient.invalidateQueries({ queryKey: ['prestamos', carteraId] })
+            queryClient.invalidateQueries({ queryKey: ['cobros-hoy', carteraId] })
+          } catch (e: any) {
+            Alert.alert('Error', e.message ?? 'No se pudo otorgar la prórroga')
+          }
+        },
+      },
+    ])
+  }
 
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
@@ -29,8 +57,8 @@ export default function DetallePrestamo() {
       </View>
 
       <View style={s.box}>
-        <Row label="Saldo pendiente" val={fmt(p.saldo_pendiente)} />
-        <Row label="Capital" val={fmt(p.monto_capital)} />
+        <Row label="Saldo pendiente" val={f(p.saldo_pendiente)} />
+        <Row label="Capital" val={f(p.monto_capital)} />
         <Row label="Tasa" val={`${p.tasa_interes}% (${p.modelo_interes})`} />
         <Row label="Cuotas" val={`${p.cuotas_pagadas}/${p.num_cuotas} (${p.frecuencia_cobro})`} />
         <Row label="Próximo pago" val={p.fecha_proximo_pago} />
@@ -44,12 +72,23 @@ export default function DetallePrestamo() {
         {!!p.clientes?.telefono && (
           <TouchableOpacity
             style={[s.action, { backgroundColor: '#25D366' }]}
-            onPress={() => cobrarPorWhatsApp(p.clientes!.telefono!, p.clientes!.nombre, Number(p.saldo_pendiente), 'RD$')}
+            onPress={() => cobrarPorWhatsApp(p.clientes!.telefono!, p.clientes!.nombre, Number(p.saldo_pendiente), moneda)}
           >
             <Text style={s.actionText}>💬 Cobrar</Text>
           </TouchableOpacity>
         )}
       </View>
+
+      {activo && (
+        <View style={s.actions}>
+          <TouchableOpacity style={[s.action, { backgroundColor: COLORS.info }]} onPress={prorrogar}>
+            <Text style={s.actionText}>🕓 Prórroga</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.action, { backgroundColor: COLORS.warning }]} onPress={() => router.push(`/prestamo/refinanciar?id=${p.id}`)}>
+            <Text style={s.actionText}>🔄 Refinanciar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <Text style={s.section}>Garantías</Text>
       {(garantias.data ?? []).length === 0 ? (
@@ -74,12 +113,12 @@ export default function DetallePrestamo() {
         (pagos.data ?? []).map((pg) => (
           <View key={pg.id} style={s.item}>
             <View style={s.itemRow}>
-              <Text style={s.itemTitle}>{fmt(pg.monto_total)}</Text>
+              <Text style={s.itemTitle}>{f(pg.monto_total)}</Text>
               <Text style={s.itemSub}>{pg.fecha_pago}</Text>
             </View>
             <Text style={s.itemSub}>
-              Capital {fmt(pg.monto_capital)} · Interés {fmt(pg.monto_interes)}
-              {Number(pg.monto_mora) > 0 ? ` · Mora ${fmt(pg.monto_mora)}` : ''}
+              Capital {f(pg.monto_capital)} · Interés {f(pg.monto_interes)}
+              {Number(pg.monto_mora) > 0 ? ` · Mora ${f(pg.monto_mora)}` : ''}
             </Text>
           </View>
         ))

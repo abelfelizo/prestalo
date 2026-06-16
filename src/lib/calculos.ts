@@ -87,21 +87,73 @@ export interface DesglosePago {
   saldo_despues: number
 }
 
+export type TipoPagoApp = 'cuota_completa' | 'parcial' | 'solo_interes' | 'abono_capital'
+
+export interface DatosCuota {
+  capital: number
+  tasa: number
+  modelo: ModeloInteres
+  numCuotas: number
+  frecuencia: Frecuencia
+  cuotasPagadas: number
+}
+
+/** Capital que corresponde a una cuota (capital / nº de cuotas). */
+export function capitalDeCuota(capital: number, numCuotas: number): number {
+  return numCuotas > 0 ? capital / numCuotas : capital
+}
+
 /**
- * Desglosa un pago de cuota completa para insertar en `pagos`.
+ * Interés de la PRÓXIMA cuota.
+ * - flat: interés total / nº de cuotas (constante).
+ * - sobre_saldo: tasa mensual prorrateada sobre el CAPITAL restante (decrece cada cuota).
+ */
+export function interesDeProximaCuota(d: DatosCuota): number {
+  if (d.numCuotas <= 0) return 0
+  if (d.modelo === 'flat') return (d.capital * (d.tasa / 100)) / d.numCuotas
+  const factor = DIAS_POR_FRECUENCIA[d.frecuencia] / 30
+  const abono = d.capital / d.numCuotas
+  const capitalRestante = Math.max(d.capital - d.cuotasPagadas * abono, 0)
+  return capitalRestante * (d.tasa / 100) * factor
+}
+
+/**
+ * Desglosa un pago para insertar en `pagos` según el tipo.
  * Los triggers de la BD actualizan saldo del préstamo, score del cliente y caja.
  */
-export function desglosarCuota(
-  saldoAntes: number,
-  capital: number,
-  interesTotal: number,
-  numCuotas: number,
-  mora = 0,
-): DesglosePago {
-  const cap = numCuotas > 0 ? capital / numCuotas : capital
-  const int = numCuotas > 0 ? interesTotal / numCuotas : interesTotal
-  const aplicadoAlSaldo = cap + int
+export function desglosarPago(params: {
+  saldoAntes: number
+  tipo: TipoPagoApp
+  intCuota: number
+  capCuota: number
+  montoIngresado?: number
+  mora?: number
+}): DesglosePago & { tipo_pago: TipoPagoApp } {
+  const { saldoAntes, tipo, intCuota, capCuota } = params
+  const mora = params.mora ?? 0
+  const ingresado = params.montoIngresado ?? 0
+
+  let cap = 0
+  let int = 0
+  switch (tipo) {
+    case 'cuota_completa':
+      cap = capCuota
+      int = intCuota
+      break
+    case 'solo_interes':
+      int = intCuota
+      break
+    case 'abono_capital':
+      cap = ingresado
+      break
+    case 'parcial':
+      int = Math.min(ingresado, intCuota)
+      cap = Math.max(ingresado - int, 0)
+      break
+  }
+  const aplicadoAlSaldo = Math.min(cap + int, saldoAntes)
   return {
+    tipo_pago: tipo,
     monto_total: aplicadoAlSaldo + mora,
     monto_capital: cap,
     monto_interes: int,

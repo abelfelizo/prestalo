@@ -2,12 +2,13 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator }
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getPrestamos } from '@/api/prestamos'
-import { fmt } from '@/lib/calculos'
+import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
 export default function Prestamos() {
   const router = useRouter()
+  const f = useFmt()
   const carteraId = useSession((s) => s.carteraActivaId)
   const { data, isLoading } = useQuery({
     queryKey: ['prestamos', carteraId],
@@ -47,8 +48,8 @@ export default function Prestamos() {
                 </View>
               </View>
               <View style={s.montos}>
-                <View><Text style={s.montoLabel}>Saldo</Text><Text style={s.montoVal}>{fmt(item.saldo_pendiente)}</Text></View>
-                <View><Text style={s.montoLabel}>Capital</Text><Text style={s.montoVal}>{fmt(item.monto_capital)}</Text></View>
+                <View><Text style={s.montoLabel}>Saldo</Text><Text style={s.montoVal}>{f(item.saldo_pendiente)}</Text></View>
+                <View><Text style={s.montoLabel}>Capital</Text><Text style={s.montoVal}>{f(item.monto_capital)}</Text></View>
                 <View><Text style={s.montoLabel}>Cuotas</Text><Text style={s.montoVal}>{item.cuotas_pagadas}/{item.num_cuotas}</Text></View>
               </View>
             </TouchableOpacity>

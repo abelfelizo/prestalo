@@ -3,12 +3,13 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
 import { getCobrosHoy } from '@/api/prestamos'
-import { fmt } from '@/lib/calculos'
+import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
 export default function Dashboard() {
   const router = useRouter()
+  const f = useFmt()
   const carteraId = useSession((s) => s.carteraActivaId)
 
   const metricas = useQuery({
@@ -56,12 +57,12 @@ export default function Dashboard() {
 
       <View style={s.hero}>
         <Text style={s.heroLabel}>Capital en la calle</Text>
-        <Text style={s.heroMonto}>{fmt(m?.capital_en_calle ?? 0)}</Text>
+        <Text style={s.heroMonto}>{f(m?.capital_en_calle ?? 0)}</Text>
         <Text style={s.heroSub}>{m?.clientes_activos ?? 0} clientes activos</Text>
       </View>
 
       <View style={s.grid}>
-        <View style={s.met}><Text style={s.metLabel}>Total prestado</Text><Text style={s.metVal}>{fmt(m?.total_prestado ?? 0)}</Text></View>
+        <View style={s.met}><Text style={s.metLabel}>Total prestado</Text><Text style={s.metVal}>{f(m?.total_prestado ?? 0)}</Text></View>
         <View style={s.met}><Text style={s.metLabel}>En mora</Text><Text style={[s.metVal, { color: COLORS.danger }]}>{m?.prestamos_en_mora ?? 0}</Text></View>
       </View>
 
@@ -78,7 +79,7 @@ export default function Dashboard() {
               <View style={s.avatar}><Text style={s.avatarText}>{(p.clientes?.nombre || 'XX').slice(0, 2).toUpperCase()}</Text></View>
               <View>
                 <Text style={s.clienteNombre}>{p.clientes?.nombre || 'Cliente'}</Text>
-                <Text style={s.clienteSub}>Saldo: {fmt(p.saldo_pendiente)}</Text>
+                <Text style={s.clienteSub}>Saldo: {f(p.saldo_pendiente)}</Text>
               </View>
             </View>
             <View style={[s.pill, p.estado === 'en_mora' && s.pillR, p.estado === 'activo' && s.pillG]}>

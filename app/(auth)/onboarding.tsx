@@ -12,7 +12,7 @@ const COLORES = Object.keys(COLOR_CARTERA) as ColorCartera[]
 
 export default function Onboarding() {
   const router = useRouter()
-  const { setPrestamista, setCarteraActiva, setDesbloqueado } = useSession()
+  const { setPrestamista, setCarteraActiva, setMoneda: setMonedaSesion, setDesbloqueado } = useSession()
 
   const [fase, setFase] = useState<'perfil' | 'pin'>('perfil')
   const [nombre, setNombre] = useState('')
@@ -52,6 +52,7 @@ export default function Onboarding() {
       await guardarPinLocal(pin)
       setPrestamista(user.id)
       setCarteraActiva(nuevaCartera.id)
+      setMonedaSesion(nuevaCartera.moneda)
       setDesbloqueado(true)
       router.replace('/(app)/dashboard')
     } catch (e: any) {
