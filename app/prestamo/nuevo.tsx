@@ -33,7 +33,7 @@ export default function NuevoPrestamo() {
   const t = parseFloat(tasa) || 0
   const n = parseInt(numCuotas, 10) || 0
 
-  const resumen = useMemo(() => calcularPrestamo(cap, t, modelo, n), [cap, t, modelo, n])
+  const resumen = useMemo(() => calcularPrestamo(cap, t, modelo, n, frecuencia), [cap, t, modelo, n, frecuencia])
 
   const mut = useMutation({
     mutationFn: () => {
@@ -55,6 +55,8 @@ export default function NuevoPrestamo() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prestamos', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['metricas', carteraId] })
+      queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
+      queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
       router.back()
     },
     onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo crear el préstamo'),
@@ -87,8 +89,13 @@ export default function NuevoPrestamo() {
       <Text style={s.label}>Capital *</Text>
       <TextInput style={s.input} value={capital} onChangeText={setCapital} placeholder="0" placeholderTextColor="#bbb" keyboardType="numeric" />
 
-      <Text style={s.label}>Tasa de interés (% por cuota)</Text>
+      <Text style={s.label}>{modelo === 'flat' ? 'Tasa de interés (% total)' : 'Tasa de interés (% mensual)'}</Text>
       <TextInput style={s.input} value={tasa} onChangeText={setTasa} placeholder="0" placeholderTextColor="#bbb" keyboardType="numeric" />
+      <Text style={s.hint}>
+        {modelo === 'flat'
+          ? 'Flat: interés total una sola vez sobre el capital.'
+          : 'Sobre saldo: tasa mensual, prorrateada al período, sobre el saldo que baja.'}
+      </Text>
 
       <Text style={s.label}>Modelo de interés</Text>
       <View style={s.chips}>

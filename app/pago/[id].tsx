@@ -9,7 +9,7 @@ import { enviarComprobante } from '@/lib/whatsapp'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
-import type { ModeloInteres } from '@/types'
+import type { Frecuencia, ModeloInteres } from '@/types'
 
 export default function RegistrarPago() {
   const router = useRouter()
@@ -31,6 +31,7 @@ export default function RegistrarPago() {
       Number(prestamo.tasa_interes),
       prestamo.modelo_interes as ModeloInteres,
       prestamo.num_cuotas,
+      prestamo.frecuencia_cobro as Frecuencia,
     )
     return desglosarCuota(
       Number(prestamo.saldo_pendiente),
@@ -64,6 +65,8 @@ export default function RegistrarPago() {
       queryClient.invalidateQueries({ queryKey: ['metricas', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['prestamo', id] })
       queryClient.invalidateQueries({ queryKey: ['pagos', id] })
+      queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
+      queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
       const tel = prestamo?.clientes?.telefono
       if (tel) {
         Alert.alert('Pago registrado', '¿Enviar comprobante por WhatsApp?', [

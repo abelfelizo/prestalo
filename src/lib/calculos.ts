@@ -13,27 +13,34 @@ export interface ResumenPrestamo {
   cuota: number
 }
 
-/** Calcula el total a cobrar y la cuota de un préstamo. */
+/**
+ * Calcula el total a cobrar y la cuota de un préstamo.
+ * - flat: la tasa es el interés TOTAL del préstamo (una sola vez sobre el capital).
+ * - sobre_saldo: la tasa es MENSUAL y se prorratea al período, aplicada sobre el saldo decreciente.
+ */
 export function calcularPrestamo(
   capital: number,
   tasa: number,
   modelo: ModeloInteres,
   numCuotas: number,
+  frecuencia: Frecuencia = 'mensual',
 ): ResumenPrestamo {
   if (numCuotas <= 0) return { montoTotal: capital, interesTotal: 0, cuota: capital }
 
   if (modelo === 'flat') {
-    const interesTotal = capital * (tasa / 100) * numCuotas
+    const interesTotal = capital * (tasa / 100) // total, una sola vez
     const montoTotal = capital + interesTotal
     return { montoTotal, interesTotal, cuota: montoTotal / numCuotas }
   }
 
-  // sobre_saldo: el interés se calcula sobre el saldo decreciente
+  // sobre_saldo: tasa mensual prorrateada al período, sobre el saldo decreciente
+  const factor = DIAS_POR_FRECUENCIA[frecuencia] / 30
+  const abonoCapital = capital / numCuotas
   let saldo = capital
   let interesTotal = 0
   for (let i = 0; i < numCuotas; i++) {
-    interesTotal += saldo * (tasa / 100)
-    saldo -= capital / numCuotas
+    interesTotal += saldo * (tasa / 100) * factor
+    saldo -= abonoCapital
   }
   const montoTotal = capital + interesTotal
   return { montoTotal, interesTotal, cuota: montoTotal / numCuotas }
