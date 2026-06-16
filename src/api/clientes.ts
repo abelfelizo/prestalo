@@ -23,3 +23,17 @@ export async function crearCliente(input: Inserts<'clientes'>): Promise<Cliente>
   if (error) throw error
   return data
 }
+
+export async function editarCliente(id: string, patch: Partial<Inserts<'clientes'>>): Promise<void> {
+  const { error } = await supabase.from('clientes').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+/** Borrado lógico del cliente. */
+export async function eliminarCliente(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('clientes')
+    .update({ deleted_at: new Date().toISOString(), activo: false })
+    .eq('id', id)
+  if (error) throw error
+}

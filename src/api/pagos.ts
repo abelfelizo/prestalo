@@ -15,6 +15,12 @@ export async function registrarPago(input: Inserts<'pagos'>): Promise<Pago> {
   return data
 }
 
+/** Anula un pago (revierte saldo, cuotas, caja y totales del cliente). */
+export async function anularPago(pagoId: string): Promise<void> {
+  const { error } = await supabase.rpc('anular_pago', { p_pago_id: pagoId })
+  if (error) throw error
+}
+
 export async function getPagosDePrestamo(prestamoId: string): Promise<Pago[]> {
   const { data, error } = await supabase
     .from('pagos')

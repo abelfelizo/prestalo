@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase'
-import type { Cartera, Prestamista } from '@/types'
+import type { Cartera, Inserts, Prestamista } from '@/types'
+
+export async function crearCartera(input: Inserts<'carteras'>): Promise<Cartera> {
+  const { data, error } = await supabase.from('carteras').insert(input).select().single()
+  if (error) throw error
+  return data
+}
 
 /** Trae el prestamista del usuario autenticado (o null si aún no completó onboarding). */
 export async function getPrestamista(userId: string): Promise<Prestamista | null> {

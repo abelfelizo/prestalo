@@ -29,6 +29,15 @@ export async function marcarRefinanciado(prestamoId: string): Promise<void> {
   if (error) throw error
 }
 
+/** Cancela un préstamo (queda sin efecto, no se cobra). */
+export async function cancelarPrestamo(prestamoId: string): Promise<void> {
+  const { error } = await supabase
+    .from('prestamos')
+    .update({ estado: 'cancelado', deleted_at: new Date().toISOString() })
+    .eq('id', prestamoId)
+  if (error) throw error
+}
+
 export async function getPrestamosDeCliente(clienteId: string): Promise<PrestamoConCliente[]> {
   const { data, error } = await supabase
     .from('prestamos')

@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Scr
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getCarteras, setCarteraActiva } from '@/api/prestamistas'
-import { getHerederos } from '@/api/herederos'
+import { getHerederos, eliminarHeredero } from '@/api/herederos'
 import { signOut } from '@/api/auth'
 import { limpiarPinLocal } from '@/lib/pin'
 import { queryClient } from '@/lib/queryClient'
@@ -69,6 +69,9 @@ export default function Ajustes() {
           </TouchableOpacity>
         ))
       )}
+      <TouchableOpacity style={s.link} onPress={() => router.push('/cartera/nueva')}>
+        <Text style={s.linkText}>＋  Nueva cartera</Text>
+      </TouchableOpacity>
 
       <Text style={s.section}>Cobranza</Text>
       <TouchableOpacity style={s.link} onPress={() => router.push('/config-mora')}>
@@ -77,10 +80,26 @@ export default function Ajustes() {
 
       <Text style={s.section}>Herederos</Text>
       {(herederos.data ?? []).map((h) => (
-        <View key={h.id} style={s.heredero}>
+        <TouchableOpacity
+          key={h.id}
+          style={s.heredero}
+          onLongPress={() =>
+            Alert.alert('Eliminar heredero', `¿Eliminar a ${h.nombre}?`, [
+              { text: 'Cancelar', style: 'cancel' },
+              {
+                text: 'Eliminar',
+                style: 'destructive',
+                onPress: async () => {
+                  await eliminarHeredero(h.id)
+                  queryClient.invalidateQueries({ queryKey: ['herederos', prestamistaId] })
+                },
+              },
+            ])
+          }
+        >
           <Text style={s.herederoNombre}>{h.nombre}</Text>
-          <Text style={s.herederoSub}>{h.relacion} · {h.telefono}</Text>
-        </View>
+          <Text style={s.herederoSub}>{h.relacion} · {h.telefono} · mantén presionado para eliminar</Text>
+        </TouchableOpacity>
       ))}
       <TouchableOpacity style={s.link} onPress={() => router.push('/heredero/nuevo')}>
         <Text style={s.linkText}>＋  Agregar heredero</Text>

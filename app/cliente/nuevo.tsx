@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
-import { useMutation } from '@tanstack/react-query'
-import { crearCliente } from '@/api/clientes'
+import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { crearCliente, editarCliente, getCliente } from '@/api/clientes'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -10,25 +10,43 @@ import { COLORS } from '@/lib/constants'
 export default function NuevoCliente() {
   const router = useRouter()
   const carteraId = useSession((s) => s.carteraActivaId)
+  const { id } = useLocalSearchParams<{ id?: string }>()
+  const editando = !!id
+
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [cedula, setCedula] = useState('')
   const [direccion, setDireccion] = useState('')
 
+  const existente = useQuery({ queryKey: ['cliente', id], queryFn: () => getCliente(id!), enabled: editando })
+  useEffect(() => {
+    const c = existente.data
+    if (c) {
+      setNombre(c.nombre)
+      setTelefono(c.telefono)
+      setCedula(c.cedula ?? '')
+      setDireccion(c.direccion ?? '')
+    }
+  }, [existente.data])
+
   const mut = useMutation({
-    mutationFn: () =>
-      crearCliente({
-        cartera_id: carteraId!,
+    mutationFn: () => {
+      const patch = {
         nombre: nombre.trim(),
         telefono: telefono.trim(),
         cedula: cedula.trim() || null,
         direccion: direccion.trim() || null,
-      }),
+      }
+      return editando
+        ? editarCliente(id!, patch)
+        : crearCliente({ cartera_id: carteraId!, ...patch }).then(() => {})
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientes', carteraId] })
+      if (editando) queryClient.invalidateQueries({ queryKey: ['cliente', id] })
       router.back()
     },
-    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo crear el cliente'),
+    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo guardar el cliente'),
   })
 
   function guardar() {
@@ -39,7 +57,7 @@ export default function NuevoCliente() {
 
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
-      <Text style={s.title}>Nuevo cliente</Text>
+      <Text style={s.title}>{editando ? 'Editar cliente' : 'Nuevo cliente'}</Text>
 
       <Text style={s.label}>Nombre *</Text>
       <TextInput style={s.input} value={nombre} onChangeText={setNombre} placeholder="Nombre completo" placeholderTextColor="#bbb" />

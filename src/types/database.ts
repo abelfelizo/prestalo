@@ -1876,7 +1876,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      anular_pago: { Args: { p_pago_id: string }; Returns: undefined }
+      es_mi_cartera: { Args: { cid: string }; Returns: boolean }
+      es_mi_prestamo: { Args: { pid: string }; Returns: boolean }
+      marcar_vencidos: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

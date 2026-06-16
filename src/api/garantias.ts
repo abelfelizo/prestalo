@@ -16,3 +16,12 @@ export async function crearGarantia(input: Inserts<'garantias'>): Promise<Garant
   if (error) throw error
   return data
 }
+
+/** Marca una garantía como devuelta. */
+export async function devolverGarantia(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('garantias')
+    .update({ estado: 'devuelta', fecha_devuelta: new Date().toISOString().slice(0, 10) })
+    .eq('id', id)
+  if (error) throw error
+}

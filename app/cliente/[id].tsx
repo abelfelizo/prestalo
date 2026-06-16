@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { getCliente } from '@/api/clientes'
+import { getCliente, eliminarCliente } from '@/api/clientes'
 import { getPrestamosDeCliente } from '@/api/prestamos'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
+import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { COLORS } from '@/lib/constants'
 
@@ -12,10 +13,30 @@ export default function DetalleCliente() {
   const router = useRouter()
   const f = useFmt()
   const moneda = useSession((s) => s.moneda)
+  const carteraId = useSession((s) => s.carteraActivaId)
   const { id } = useLocalSearchParams<{ id: string }>()
 
   const cliente = useQuery({ queryKey: ['cliente', id], queryFn: () => getCliente(id), enabled: !!id })
   const prestamos = useQuery({ queryKey: ['prestamos-cliente', id], queryFn: () => getPrestamosDeCliente(id), enabled: !!id })
+
+  function eliminar() {
+    Alert.alert('Eliminar cliente', '¿Seguro? Se ocultará de tu lista.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await eliminarCliente(id)
+            queryClient.invalidateQueries({ queryKey: ['clientes', carteraId] })
+            router.back()
+          } catch (e: any) {
+            Alert.alert('Error', e.message ?? 'No se pudo eliminar')
+          }
+        },
+      },
+    ])
+  }
 
   if (cliente.isLoading || !cliente.data) {
     return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
@@ -51,6 +72,15 @@ export default function DetalleCliente() {
           <Text style={s.waText}>💬 Escribir por WhatsApp</Text>
         </TouchableOpacity>
       )}
+
+      <View style={s.editRow}>
+        <TouchableOpacity style={s.editBtn} onPress={() => router.push(`/cliente/nuevo?id=${id}`)}>
+          <Text style={s.editText}>✏️ Editar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.delBtn} onPress={eliminar}>
+          <Text style={s.delText}>🗑 Eliminar</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={s.section}>Préstamos</Text>
       {(prestamos.data ?? []).length === 0 ? (
@@ -99,6 +129,11 @@ const s = StyleSheet.create({
   rowVal: { fontSize: 14, fontWeight: '700', color: COLORS.text },
   wa: { backgroundColor: '#25D366', borderRadius: 14, padding: 14, alignItems: 'center', marginTop: 14 },
   waText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  editRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
+  editBtn: { flex: 1, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border },
+  editText: { fontWeight: '700', color: COLORS.text, fontSize: 14 },
+  delBtn: { flex: 1, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger },
+  delText: { fontWeight: '700', color: COLORS.danger, fontSize: 14 },
   section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1, marginTop: 26, marginBottom: 10 },
   item: { backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, padding: 12, marginBottom: 8 },
   itemRow: { flexDirection: 'row', justifyContent: 'space-between' },

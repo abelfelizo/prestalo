@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { getPrestamo, otorgarProrroga } from '@/api/prestamos'
-import { getPagosDePrestamo } from '@/api/pagos'
-import { getGarantias } from '@/api/garantias'
+import { getPrestamo, otorgarProrroga, cancelarPrestamo } from '@/api/prestamos'
+import { getPagosDePrestamo, anularPago } from '@/api/pagos'
+import { getGarantias, devolverGarantia } from '@/api/garantias'
 import { primeraFechaPago } from '@/lib/calculos'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
@@ -29,6 +29,17 @@ export default function DetallePrestamo() {
   const p = prestamo.data
   const activo = p.estado === 'activo' || p.estado === 'en_mora'
 
+  function refrescarTodo() {
+    queryClient.invalidateQueries({ queryKey: ['prestamo', id] })
+    queryClient.invalidateQueries({ queryKey: ['pagos', id] })
+    queryClient.invalidateQueries({ queryKey: ['garantias', id] })
+    queryClient.invalidateQueries({ queryKey: ['prestamos', carteraId] })
+    queryClient.invalidateQueries({ queryKey: ['cobros-hoy', carteraId] })
+    queryClient.invalidateQueries({ queryKey: ['metricas', carteraId] })
+    queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
+    queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
+  }
+
   async function prorrogar() {
     const nueva = primeraFechaPago(p.fecha_proximo_pago, p.frecuencia_cobro as Frecuencia)
     Alert.alert('Otorgar prórroga', `Mover el próximo pago a ${nueva}?`, [
@@ -38,15 +49,59 @@ export default function DetallePrestamo() {
         onPress: async () => {
           try {
             await otorgarProrroga(p.id, nueva)
-            queryClient.invalidateQueries({ queryKey: ['prestamo', id] })
-            queryClient.invalidateQueries({ queryKey: ['prestamos', carteraId] })
-            queryClient.invalidateQueries({ queryKey: ['cobros-hoy', carteraId] })
+            refrescarTodo()
           } catch (e: any) {
             Alert.alert('Error', e.message ?? 'No se pudo otorgar la prórroga')
           }
         },
       },
     ])
+  }
+
+  function cancelar() {
+    Alert.alert('Cancelar préstamo', 'El préstamo quedará sin efecto. ¿Continuar?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Cancelar préstamo',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await cancelarPrestamo(p.id)
+            refrescarTodo()
+            router.back()
+          } catch (e: any) {
+            Alert.alert('Error', e.message ?? 'No se pudo cancelar')
+          }
+        },
+      },
+    ])
+  }
+
+  function anular(pagoId: string) {
+    Alert.alert('Anular pago', 'Se revertirá el saldo y la caja. ¿Continuar?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Anular',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await anularPago(pagoId)
+            refrescarTodo()
+          } catch (e: any) {
+            Alert.alert('Error', e.message ?? 'No se pudo anular')
+          }
+        },
+      },
+    ])
+  }
+
+  async function devolver(garantiaId: string) {
+    try {
+      await devolverGarantia(garantiaId)
+      queryClient.invalidateQueries({ queryKey: ['garantias', id] })
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'No se pudo actualizar')
+    }
   }
 
   return (
@@ -89,6 +144,11 @@ export default function DetallePrestamo() {
           </TouchableOpacity>
         </View>
       )}
+      {activo && (
+        <TouchableOpacity style={s.cancelLoan} onPress={cancelar}>
+          <Text style={s.cancelLoanText}>Cancelar préstamo</Text>
+        </TouchableOpacity>
+      )}
 
       <Text style={s.section}>Garantías</Text>
       {(garantias.data ?? []).length === 0 ? (
@@ -105,6 +165,11 @@ export default function DetallePrestamo() {
                   <Image key={url} source={{ uri: url }} style={s.foto} />
                 ))}
               </View>
+            )}
+            {g.estado === 'en_poder' && (
+              <TouchableOpacity onPress={() => devolver(g.id)}>
+                <Text style={s.linkSmall}>Marcar como devuelta</Text>
+              </TouchableOpacity>
             )}
           </View>
         ))
@@ -127,6 +192,9 @@ export default function DetallePrestamo() {
               Capital {f(pg.monto_capital)} · Interés {f(pg.monto_interes)}
               {Number(pg.monto_mora) > 0 ? ` · Mora ${f(pg.monto_mora)}` : ''}
             </Text>
+            <TouchableOpacity onPress={() => anular(pg.id)}>
+              <Text style={s.anular}>Anular</Text>
+            </TouchableOpacity>
           </View>
         ))
       )}
@@ -169,5 +237,9 @@ const s = StyleSheet.create({
   fotos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   foto: { width: 64, height: 64, borderRadius: 8, backgroundColor: COLORS.surface },
   link: { color: COLORS.info, fontWeight: '600', marginTop: 8, fontSize: 14 },
+  linkSmall: { color: COLORS.info, fontWeight: '600', marginTop: 8, fontSize: 13 },
+  anular: { color: COLORS.danger, fontWeight: '600', marginTop: 6, fontSize: 12 },
+  cancelLoan: { borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger, marginTop: 10 },
+  cancelLoanText: { color: COLORS.danger, fontWeight: '700', fontSize: 14 },
   cancel: { textAlign: 'center', color: COLORS.textLight, marginTop: 24, fontSize: 14 },
 })
