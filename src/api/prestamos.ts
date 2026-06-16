@@ -14,6 +14,16 @@ export async function getPrestamos(carteraId: string): Promise<PrestamoConClient
   return (data ?? []) as unknown as PrestamoConCliente[]
 }
 
+export async function getPrestamo(id: string): Promise<PrestamoConCliente | null> {
+  const { data, error } = await supabase
+    .from('prestamos')
+    .select(SELECT_CON_CLIENTE)
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw error
+  return (data as unknown as PrestamoConCliente) ?? null
+}
+
 /** Préstamos cuyo próximo pago vence hoy o antes (cobros del día). */
 export async function getCobrosHoy(carteraId: string): Promise<PrestamoConCliente[]> {
   const hoy = new Date().toISOString().slice(0, 10)

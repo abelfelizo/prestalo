@@ -1,10 +1,12 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
 import { getClientes } from '@/api/clientes'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
 export default function Clientes() {
+  const router = useRouter()
   const carteraId = useSession((s) => s.carteraActivaId)
   const { data, isLoading } = useQuery({
     queryKey: ['clientes', carteraId],
@@ -20,7 +22,7 @@ export default function Clientes() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Clientes</Text>
-        <TouchableOpacity style={s.addBtn}>
+        <TouchableOpacity style={s.addBtn} onPress={() => router.push('/cliente/nuevo')}>
           <Text style={s.addText}>+ Nuevo</Text>
         </TouchableOpacity>
       </View>

@@ -1,11 +1,13 @@
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
 import { getPrestamos } from '@/api/prestamos'
 import { fmt } from '@/lib/calculos'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
 export default function Prestamos() {
+  const router = useRouter()
   const carteraId = useSession((s) => s.carteraActivaId)
   const { data, isLoading } = useQuery({
     queryKey: ['prestamos', carteraId],
@@ -19,7 +21,12 @@ export default function Prestamos() {
 
   return (
     <View style={s.container}>
-      <View style={s.header}><Text style={s.title}>Préstamos</Text></View>
+      <View style={s.header}>
+        <Text style={s.title}>Préstamos</Text>
+        <TouchableOpacity style={s.addBtn} onPress={() => router.push('/prestamo/nuevo')}>
+          <Text style={s.addText}>+ Nuevo</Text>
+        </TouchableOpacity>
+      </View>
       {prestamos.length === 0 ? (
         <View style={s.empty}>
           <Text style={s.emptyEmoji}>💸</Text>
@@ -32,7 +39,7 @@ export default function Prestamos() {
           keyExtractor={(i) => i.id}
           contentContainerStyle={{ padding: 16 }}
           renderItem={({ item }) => (
-            <View style={s.card}>
+            <TouchableOpacity style={s.card} onPress={() => router.push(`/pago/${item.id}`)}>
               <View style={s.cardTop}>
                 <Text style={s.clienteNombre}>{item.clientes?.nombre || 'Cliente'}</Text>
                 <View style={[s.pill, item.estado === 'en_mora' && s.pillR, item.estado === 'activo' && s.pillG]}>
@@ -44,7 +51,7 @@ export default function Prestamos() {
                 <View><Text style={s.montoLabel}>Capital</Text><Text style={s.montoVal}>{fmt(item.monto_capital)}</Text></View>
                 <View><Text style={s.montoLabel}>Cuotas</Text><Text style={s.montoVal}>{item.cuotas_pagadas}/{item.num_cuotas}</Text></View>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
         />
       )}
@@ -55,8 +62,10 @@ export default function Prestamos() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { padding: 16, paddingTop: 56 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 56 },
   title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
+  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10 },
+  addText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyEmoji: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },

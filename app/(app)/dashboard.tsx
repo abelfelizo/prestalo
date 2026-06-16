@@ -1,5 +1,6 @@
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
 import { getCobrosHoy } from '@/api/prestamos'
 import { fmt } from '@/lib/calculos'
@@ -7,6 +8,7 @@ import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
 export default function Dashboard() {
+  const router = useRouter()
   const carteraId = useSession((s) => s.carteraActivaId)
 
   const metricas = useQuery({
@@ -71,7 +73,7 @@ export default function Dashboard() {
         </View>
       ) : (
         lista.map((p) => (
-          <View key={p.id} style={s.card}>
+          <TouchableOpacity key={p.id} style={s.card} onPress={() => router.push(`/pago/${p.id}`)}>
             <View style={s.cardLeft}>
               <View style={s.avatar}><Text style={s.avatarText}>{(p.clientes?.nombre || 'XX').slice(0, 2).toUpperCase()}</Text></View>
               <View>
@@ -82,7 +84,7 @@ export default function Dashboard() {
             <View style={[s.pill, p.estado === 'en_mora' && s.pillR, p.estado === 'activo' && s.pillG]}>
               <Text style={[s.pillText, p.estado === 'en_mora' && { color: COLORS.danger }, p.estado === 'activo' && { color: COLORS.success }]}>{p.estado}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))
       )}
     </ScrollView>
