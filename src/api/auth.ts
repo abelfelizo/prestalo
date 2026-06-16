@@ -1,16 +1,21 @@
 import { supabase } from '@/lib/supabase'
-import type { User } from '@supabase/supabase-js'
+import type { Session, User } from '@supabase/supabase-js'
 
-export async function signUp(email: string, password: string): Promise<User | null> {
-  const { data, error } = await supabase.auth.signUp({ email, password })
-  if (error) throw error
-  return data.user
+export interface AuthResult {
+  user: User | null
+  session: Session | null
 }
 
-export async function signIn(email: string, password: string): Promise<User | null> {
+export async function signUp(email: string, password: string): Promise<AuthResult> {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) throw error
+  return { user: data.user, session: data.session }
+}
+
+export async function signIn(email: string, password: string): Promise<AuthResult> {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) throw error
-  return data.user
+  return { user: data.user, session: data.session }
 }
 
 export async function signOut(): Promise<void> {

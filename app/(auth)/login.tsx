@@ -19,17 +19,28 @@ export default function Login() {
     }
     setLoading(true)
     try {
-      const user = modo === 'entrar'
+      const { user, session } = modo === 'entrar'
         ? await signIn(email.trim(), password)
         : await signUp(email.trim(), password)
-      if (!user) {
-        Alert.alert('Revisa tu correo', 'Confirma tu cuenta desde el email para continuar.')
+
+      // Si no hay sesión (p.ej. Supabase exige confirmar el correo), no avanzamos.
+      if (!session || !user) {
+        Alert.alert(
+          'Confirma tu correo',
+          'Te enviamos un email para confirmar tu cuenta. Ábrelo y luego inicia sesión aquí.',
+        )
+        setModo('entrar')
+        setPassword('')
         return
       }
       const prest = await getPrestamista(user.id)
       router.replace(prest ? '/(auth)/lock' : '/(auth)/onboarding')
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'No se pudo iniciar sesión')
+      const msg: string = e?.message ?? 'No se pudo iniciar sesión'
+      Alert.alert(
+        'Error',
+        /not confirmed/i.test(msg) ? 'Tu correo aún no está confirmado. Revisa tu email.' : msg,
+      )
     } finally {
       setLoading(false)
     }
