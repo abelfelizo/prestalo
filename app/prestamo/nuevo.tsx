@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { useRouter } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getClientes } from '@/api/clientes'
-import { crearPrestamo } from '@/api/prestamos'
 import { calcularPrestamo, primeraFechaPago } from '@/lib/calculos'
+import { ejecutar } from '@/lib/outbox'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
@@ -40,7 +40,7 @@ export default function NuevoPrestamo() {
   const mut = useMutation({
     mutationFn: () => {
       const fechaInicio = new Date().toISOString().slice(0, 10)
-      return crearPrestamo({
+      return ejecutar('crearPrestamo', {
         cartera_id: carteraId!,
         cliente_id: clienteId!,
         monto_capital: cap,
@@ -54,11 +54,12 @@ export default function NuevoPrestamo() {
         estado: 'activo',
       })
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['prestamos', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['metricas', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
+      if (res?.encolado) Alert.alert('Sin conexión', 'El préstamo se guardó y se enviará al recuperar internet.')
       router.back()
     },
     onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo crear el préstamo'),

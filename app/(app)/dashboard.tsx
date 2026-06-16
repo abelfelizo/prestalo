@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
 import { getCobrosHoy } from '@/api/prestamos'
 import { contarNoLeidas } from '@/api/alertas'
+import { contarPendientes, flush } from '@/lib/outbox'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -18,6 +19,12 @@ export default function Dashboard() {
     queryKey: ['alertas-count', prestamistaId],
     queryFn: () => contarNoLeidas(prestamistaId!),
     enabled: !!prestamistaId,
+  })
+
+  const pendientes = useQuery({
+    queryKey: ['outbox-count'],
+    queryFn: contarPendientes,
+    refetchInterval: 8000,
   })
 
   const metricas = useQuery({
@@ -71,6 +78,15 @@ export default function Dashboard() {
         </TouchableOpacity>
       </View>
 
+      {!!pendientes.data && pendientes.data > 0 && (
+        <TouchableOpacity
+          style={s.pend}
+          onPress={() => flush().then(() => { pendientes.refetch(); cobros.refetch(); metricas.refetch() })}
+        >
+          <Text style={s.pendText}>↻ {pendientes.data} pendiente(s) de sincronizar — toca para reintentar</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={s.hero}>
         <Text style={s.heroLabel}>Capital en la calle</Text>
         <Text style={s.heroMonto}>{f(m?.capital_en_calle ?? 0)}</Text>
@@ -117,6 +133,8 @@ const s = StyleSheet.create({
   bellIcon: { fontSize: 24 },
   badge: { position: 'absolute', top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
+  pend: { backgroundColor: '#fff4e5', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: COLORS.warning },
+  pendText: { color: COLORS.warning, fontWeight: '700', fontSize: 13, textAlign: 'center' },
   hero: { backgroundColor: COLORS.primary, borderRadius: 20, padding: 24, marginBottom: 16, alignItems: 'center' },
   heroLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 6 },
   heroMonto: { fontSize: 38, fontWeight: '800', color: COLORS.gold, letterSpacing: -1 },

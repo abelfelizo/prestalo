@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { crearCliente, editarCliente, getCliente } from '@/api/clientes'
+import { editarCliente, getCliente } from '@/api/clientes'
+import { ejecutar } from '@/lib/outbox'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -30,20 +31,23 @@ export default function NuevoCliente() {
   }, [existente.data])
 
   const mut = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const patch = {
         nombre: nombre.trim(),
         telefono: telefono.trim(),
         cedula: cedula.trim() || null,
         direccion: direccion.trim() || null,
       }
-      return editando
-        ? editarCliente(id!, patch)
-        : crearCliente({ cartera_id: carteraId!, ...patch }).then(() => {})
+      if (editando) {
+        await editarCliente(id!, patch)
+        return { encolado: false }
+      }
+      return ejecutar('crearCliente', { cartera_id: carteraId!, ...patch })
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['clientes', carteraId] })
       if (editando) queryClient.invalidateQueries({ queryKey: ['cliente', id] })
+      if (res?.encolado) Alert.alert('Sin conexión', 'El cliente se guardó y se enviará al recuperar internet.')
       router.back()
     },
     onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo guardar el cliente'),

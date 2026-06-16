@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useMutation } from '@tanstack/react-query'
-import { crearMovimiento } from '@/api/caja'
+import { ejecutar } from '@/lib/outbox'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -24,7 +24,7 @@ export default function NuevoMovimiento() {
 
   const mut = useMutation({
     mutationFn: () =>
-      crearMovimiento({
+      ejecutar('crearMovimiento', {
         cartera_id: carteraId!,
         tipo: sel.tipo,
         categoria: sel.categoria,
@@ -32,9 +32,10 @@ export default function NuevoMovimiento() {
         descripcion: descripcion.trim() || null,
         fecha: new Date().toISOString().slice(0, 10),
       }),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
+      if (res?.encolado) Alert.alert('Sin conexión', 'El movimiento se guardó y se enviará al recuperar internet.')
       router.back()
     },
     onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo registrar'),

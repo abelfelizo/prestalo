@@ -1,10 +1,20 @@
+import { useEffect } from 'react'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { queryClient } from '@/lib/queryClient'
 import { asyncStoragePersister } from '@/lib/persister'
+import { flush, iniciarAutoSync } from '@/lib/outbox'
 
 export default function RootLayout() {
+  useEffect(() => {
+    flush().then((n) => {
+      if (n > 0) queryClient.invalidateQueries()
+    })
+    const unsub = iniciarAutoSync(() => queryClient.invalidateQueries())
+    return () => unsub()
+  }, [])
+
   return (
     <PersistQueryClientProvider
       client={queryClient}

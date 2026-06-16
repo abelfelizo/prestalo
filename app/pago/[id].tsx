@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getPrestamo } from '@/api/prestamos'
-import { registrarPago } from '@/api/pagos'
 import { getConfigCartera } from '@/api/config'
+import { ejecutar } from '@/lib/outbox'
 import {
   capitalDeCuota,
   interesDeProximaCuota,
@@ -96,7 +96,7 @@ export default function RegistrarPago() {
   const mut = useMutation({
     mutationFn: () => {
       const atraso = diasMora(prestamo!.fecha_proximo_pago)
-      return registrarPago({
+      return ejecutar('registrarPago', {
         prestamo_id: prestamo!.id,
         cliente_id: prestamo!.cliente_id,
         fecha_pago: new Date().toISOString().slice(0, 10),
