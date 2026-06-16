@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getCarteras, setCarteraActiva } from '@/api/prestamistas'
+import { getHerederos } from '@/api/herederos'
 import { signOut } from '@/api/auth'
 import { limpiarPinLocal } from '@/lib/pin'
 import { queryClient } from '@/lib/queryClient'
@@ -16,6 +17,12 @@ export default function Ajustes() {
   const carteras = useQuery({
     queryKey: ['carteras', prestamistaId],
     queryFn: () => getCarteras(prestamistaId!),
+    enabled: !!prestamistaId,
+  })
+
+  const herederos = useQuery({
+    queryKey: ['herederos', prestamistaId],
+    queryFn: () => getHerederos(prestamistaId!),
     enabled: !!prestamistaId,
   })
 
@@ -46,7 +53,7 @@ export default function Ajustes() {
   }
 
   return (
-    <View style={s.container}>
+    <ScrollView style={s.container} contentContainerStyle={{ padding: 16, paddingTop: 56, paddingBottom: 40 }}>
       <Text style={s.title}>Ajustes</Text>
 
       <Text style={s.section}>Mis carteras</Text>
@@ -63,10 +70,26 @@ export default function Ajustes() {
         ))
       )}
 
+      <Text style={s.section}>Cobranza</Text>
+      <TouchableOpacity style={s.link} onPress={() => router.push('/config-mora')}>
+        <Text style={s.linkText}>⚙️  Configuración de mora</Text>
+      </TouchableOpacity>
+
+      <Text style={s.section}>Herederos</Text>
+      {(herederos.data ?? []).map((h) => (
+        <View key={h.id} style={s.heredero}>
+          <Text style={s.herederoNombre}>{h.nombre}</Text>
+          <Text style={s.herederoSub}>{h.relacion} · {h.telefono}</Text>
+        </View>
+      ))}
+      <TouchableOpacity style={s.link} onPress={() => router.push('/heredero/nuevo')}>
+        <Text style={s.linkText}>＋  Agregar heredero</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={s.logout} onPress={cerrarSesion}>
         <Text style={s.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   )
 }
 
@@ -79,6 +102,11 @@ const s = StyleSheet.create({
   carteraNombre: { flex: 1, fontSize: 15, fontWeight: '700', color: COLORS.text },
   carteraMoneda: { fontSize: 13, color: COLORS.textLight },
   activa: { fontSize: 12, color: COLORS.success, fontWeight: '700', marginLeft: 8 },
+  link: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
+  linkText: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  heredero: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
+  herederoNombre: { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  herederoSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
   logout: { marginTop: 32, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger },
   logoutText: { color: COLORS.danger, fontWeight: '700', fontSize: 15 },
 })
