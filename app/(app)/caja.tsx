@@ -56,7 +56,7 @@ export default function Caja() {
       <FlatList
         data={movs.data ?? []}
         keyExtractor={(i) => i.id}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 110 }}
         ListEmptyComponent={<Text style={s.empty}>Sin movimientos todavía</Text>}
         renderItem={({ item }) => {
           const entrada = item.tipo === 'entrada'

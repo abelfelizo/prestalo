@@ -48,7 +48,7 @@ export default function Clientes() {
         <FlatList
           data={clientes}
           keyExtractor={(i) => i.id}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 110 }}
           renderItem={({ item }) => (
             <TouchableOpacity style={s.card} onPress={() => router.push(`/cliente/${item.id}`)}>
               <View style={s.avatar}><Text style={s.avatarText}>{item.nombre.slice(0, 2).toUpperCase()}</Text></View>

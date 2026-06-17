@@ -66,7 +66,7 @@ export default function Dashboard() {
   return (
     <ScrollView
       style={s.container}
-      contentContainerStyle={{ padding: 16, paddingTop: 56 }}
+      contentContainerStyle={{ padding: 16, paddingTop: 56, paddingBottom: 110 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refrescar} />}
     >
       <View style={s.titleRow}>

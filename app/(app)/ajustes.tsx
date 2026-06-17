@@ -71,7 +71,7 @@ export default function Ajustes() {
   }
 
   return (
-    <ScrollView style={s.container} contentContainerStyle={{ padding: 16, paddingTop: 56, paddingBottom: 40 }}>
+    <ScrollView style={s.container} contentContainerStyle={{ padding: 16, paddingTop: 56, paddingBottom: 110 }}>
       <Text style={s.title}>Ajustes</Text>
 
       <Text style={s.section}>Mis carteras</Text>

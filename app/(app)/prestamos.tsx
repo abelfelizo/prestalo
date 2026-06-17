@@ -50,7 +50,7 @@ export default function Prestamos() {
         <FlatList
           data={prestamos}
           keyExtractor={(i) => i.id}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 110 }}
           renderItem={({ item }) => (
             <TouchableOpacity style={s.card} onPress={() => router.push(`/prestamo/${item.id}`)}>
               <View style={s.cardTop}>

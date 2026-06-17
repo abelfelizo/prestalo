@@ -1,5 +1,7 @@
 import { Tabs } from 'expo-router'
 import { Feather } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import { StyleSheet, Platform } from 'react-native'
 import { COLORS } from '@/lib/constants'
 
 type IconName = keyof typeof Feather.glyphMap
@@ -16,11 +18,21 @@ export default function AppLayout() {
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: '#94A3B8',
         tabBarStyle: {
-          borderTopColor: COLORS.border,
-          height: 66,
-          paddingBottom: 10,
+          position: 'absolute',
+          borderTopWidth: 0,
+          elevation: 0,
+          backgroundColor: 'transparent',
+          height: Platform.OS === 'ios' ? 84 : 68,
           paddingTop: 8,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 12,
         },
+        tabBarBackground: () => (
+          <BlurView
+            intensity={40}
+            tint="light"
+            style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.72)', borderTopWidth: 0.5, borderTopColor: 'rgba(148,163,184,0.25)' }]}
+          />
+        ),
         tabBarLabelStyle: { fontSize: 10, fontWeight: '700' },
       }}
     >

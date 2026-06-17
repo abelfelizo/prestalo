@@ -1,30 +1,31 @@
 import type { ColorCartera } from '@/types'
 
-// Paleta "Verde dinero" — moderna, fresca
+// Paleta "Índigo premium" — fintech moderno (acento cian)
 export const COLORS = {
-  primary: '#059669', // esmeralda
-  primaryDark: '#047857',
-  gold: '#F59E0B', // acento ámbar (se conserva la clave 'gold' por compatibilidad)
-  accent: '#F59E0B',
+  primary: '#4F46E5', // índigo
+  primaryDark: '#4338CA',
+  gold: '#06B6D4', // acento cian (se conserva la clave 'gold' por compatibilidad)
+  accent: '#06B6D4',
   success: '#10B981',
   danger: '#EF4444',
   warning: '#F59E0B',
   info: '#2563EB',
   bg: '#FFFFFF',
-  surface: '#F0FDF4', // menta muy claro
+  surface: '#EEF2FF', // índigo muy claro
   surfaceAlt: '#F8FAFC',
   border: '#E5E7EB',
   text: '#0F172A',
   textLight: '#64748B',
-  // sombra suave reutilizable
+  // glass / sombra
   shadow: '#0F172A',
+  glassTint: 'light' as const,
 }
 
 // carteras.color es un enum semántico en la BD → hex para la UI
 export const COLOR_CARTERA: Record<ColorCartera, string> = {
-  green: '#059669',
+  green: '#10B981',
   amber: '#F59E0B',
-  blue: '#2563EB',
+  blue: '#4F46E5',
   purple: '#7C3AED',
   red: '#EF4444',
 }
