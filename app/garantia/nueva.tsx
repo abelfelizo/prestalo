@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
 import { crearGarantia, editarGarantia, getGarantias } from '@/api/garantias'
-import { subirFotoGarantia } from '@/lib/upload'
+import { subirFotoGarantia, firmarUrl, firmarUrls } from '@/lib/upload'
 import { queryClient } from '@/lib/queryClient'
 import { COLORS } from '@/lib/constants'
 
@@ -16,7 +16,8 @@ export default function NuevaGarantia() {
   const editando = !!id
   const [tipo, setTipo] = useState<(typeof TIPOS)[number]>('cedula')
   const [descripcion, setDescripcion] = useState('')
-  const [fotos, setFotos] = useState<string[]>([])
+  const [fotos, setFotos] = useState<string[]>([]) // rutas en el bucket
+  const [previews, setPreviews] = useState<string[]>([]) // URLs firmadas para mostrar
   const [subiendo, setSubiendo] = useState(false)
 
   const existentes = useQuery({ queryKey: ['garantias', prestamoId], queryFn: () => getGarantias(prestamoId), enabled: editando })
@@ -25,7 +26,9 @@ export default function NuevaGarantia() {
     if (g) {
       setTipo((TIPOS as readonly string[]).includes(g.tipo) ? (g.tipo as (typeof TIPOS)[number]) : 'otro')
       setDescripcion(g.descripcion ?? '')
-      setFotos(g.foto_urls ?? [])
+      const paths = g.foto_urls ?? []
+      setFotos(paths)
+      firmarUrls(paths).then(setPreviews)
     }
   }, [existentes.data])
 
@@ -34,8 +37,10 @@ export default function NuevaGarantia() {
     if (r.canceled || !r.assets?.[0]) return
     setSubiendo(true)
     try {
-      const url = await subirFotoGarantia(r.assets[0].uri)
-      setFotos((prev) => [...prev, url])
+      const path = await subirFotoGarantia(r.assets[0].uri)
+      const signed = await firmarUrl(path)
+      setFotos((prev) => [...prev, path])
+      setPreviews((prev) => [...prev, signed ?? ''])
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'No se pudo subir la foto')
     } finally {
@@ -80,7 +85,7 @@ export default function NuevaGarantia() {
 
       <Text style={s.label}>Fotos</Text>
       <View style={s.fotos}>
-        {fotos.map((url) => (
+        {previews.filter(Boolean).map((url) => (
           <Image key={url} source={{ uri: url }} style={s.foto} />
         ))}
         <TouchableOpacity style={s.addFoto} onPress={agregarFoto} disabled={subiendo}>

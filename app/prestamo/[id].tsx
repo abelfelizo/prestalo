@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getPrestamo, otorgarProrroga, cancelarPrestamo } from '@/api/prestamos'
@@ -10,6 +10,7 @@ import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
+import { FotosFirmadas } from '@/components/FotosFirmadas'
 import { COLORS } from '@/lib/constants'
 import type { Frecuencia } from '@/types'
 
@@ -166,13 +167,7 @@ export default function DetallePrestamo() {
             <Text style={s.itemTitle}>{g.tipo}</Text>
             {!!g.descripcion && <Text style={s.itemSub}>{g.descripcion}</Text>}
             <Text style={s.itemSub}>{g.estado}</Text>
-            {!!g.foto_urls?.length && (
-              <View style={s.fotos}>
-                {g.foto_urls.map((url) => (
-                  <Image key={url} source={{ uri: url }} style={s.foto} />
-                ))}
-              </View>
-            )}
+            {!!g.foto_urls?.length && <FotosFirmadas paths={g.foto_urls} />}
             <View style={s.gRow}>
               <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}&id=${g.id}`)}>
                 <Text style={s.linkSmall}>Editar</Text>
@@ -212,7 +207,7 @@ export default function DetallePrestamo() {
         <Text style={s.empty}>Sin pagos registrados</Text>
       ) : (
         (pagos.data ?? []).map((pg) => (
-          <View key={pg.id} style={s.item}>
+          <TouchableOpacity key={pg.id} style={s.item} activeOpacity={0.7} delayLongPress={600} onLongPress={() => anular(pg.id)}>
             <View style={s.itemRow}>
               <Text style={s.itemTitle}>{f(pg.monto_total)}</Text>
               <Text style={s.itemSub}>{pg.fecha_pago}</Text>
@@ -221,10 +216,8 @@ export default function DetallePrestamo() {
               Capital {f(pg.monto_capital)} · Interés {f(pg.monto_interes)}
               {Number(pg.monto_mora) > 0 ? ` · Mora ${f(pg.monto_mora)}` : ''}
             </Text>
-            <TouchableOpacity onPress={() => anular(pg.id)}>
-              <Text style={s.anular}>Anular</Text>
-            </TouchableOpacity>
-          </View>
+            <Text style={s.anularHint}>Mantén presionado para anular</Text>
+          </TouchableOpacity>
         ))
       )}
 
@@ -269,6 +262,7 @@ const s = StyleSheet.create({
   linkSmall: { color: COLORS.info, fontWeight: '600', marginTop: 8, fontSize: 13 },
   gRow: { flexDirection: 'row', gap: 16, marginTop: 8, alignItems: 'center' },
   anular: { color: COLORS.danger, fontWeight: '600', marginTop: 6, fontSize: 12 },
+  anularHint: { color: '#cfcfcf', fontSize: 10, marginTop: 6 },
   editLoan: { borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border, marginTop: 10 },
   editLoanText: { color: COLORS.text, fontWeight: '700', fontSize: 14 },
   cancelLoan: { borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger, marginTop: 10 },

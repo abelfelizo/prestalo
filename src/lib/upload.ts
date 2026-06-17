@@ -1,6 +1,9 @@
 import { supabase } from '@/lib/supabase'
 
-/** Sube una imagen local (uri) al bucket 'garantias' y devuelve su URL pública. */
+const BUCKET = 'garantias'
+const EXPIRA_SEG = 60 * 60 // 1h
+
+/** Sube una imagen local (uri) al bucket privado y devuelve su RUTA (no la URL). */
 export async function subirFotoGarantia(uri: string): Promise<string> {
   const res = await fetch(uri)
   const arrayBuffer = await res.arrayBuffer()
@@ -8,11 +11,21 @@ export async function subirFotoGarantia(uri: string): Promise<string> {
   const contentType = ext === 'png' ? 'image/png' : 'image/jpeg'
   const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
-  const { error } = await supabase.storage
-    .from('garantias')
-    .upload(path, arrayBuffer, { contentType, upsert: false })
+  const { error } = await supabase.storage.from(BUCKET).upload(path, arrayBuffer, { contentType, upsert: false })
   if (error) throw error
+  return path
+}
 
-  const { data } = supabase.storage.from('garantias').getPublicUrl(path)
-  return data.publicUrl
+/** Genera una URL firmada temporal para una ruta del bucket privado. */
+export async function firmarUrl(path: string): Promise<string | null> {
+  if (path.startsWith('http')) return path // compat con datos viejos (URLs públicas)
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, EXPIRA_SEG)
+  if (error) return null
+  return data.signedUrl
+}
+
+/** Firma varias rutas; descarta las que fallen. */
+export async function firmarUrls(paths: string[]): Promise<string[]> {
+  const urls = await Promise.all(paths.map((p) => firmarUrl(p)))
+  return urls.filter((u): u is string => !!u)
 }
