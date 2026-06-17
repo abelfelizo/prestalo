@@ -89,6 +89,43 @@ export interface DesglosePago {
 
 export type TipoPagoApp = 'cuota_completa' | 'parcial' | 'solo_interes' | 'abono_capital'
 
+export interface ItemCalendario {
+  numero: number
+  fecha: string
+  monto: number
+  pagada: boolean
+}
+
+/** Calendario completo de cuotas de un préstamo (fecha, monto, si está pagada). */
+export function calendarioPrestamo(p: {
+  monto_capital: number
+  tasa_interes: number
+  modelo_interes: string
+  frecuencia_cobro: string
+  num_cuotas: number
+  cuotas_pagadas: number
+  fecha_inicio: string
+}): ItemCalendario[] {
+  const capital = Number(p.monto_capital)
+  const n = p.num_cuotas
+  const tasa = Number(p.tasa_interes)
+  const frecuencia = p.frecuencia_cobro as Frecuencia
+  const capCuota = n > 0 ? capital / n : capital
+  const factor = (DIAS_POR_FRECUENCIA[frecuencia] ?? 30) / 30
+  const base = new Date(p.fecha_inicio)
+  const out: ItemCalendario[] = []
+  for (let i = 1; i <= n; i++) {
+    const d = new Date(base)
+    if (frecuencia === 'mensual') d.setMonth(d.getMonth() + i)
+    else d.setDate(d.getDate() + (DIAS_POR_FRECUENCIA[frecuencia] ?? 30) * i)
+    let interes: number
+    if (p.modelo_interes === 'flat') interes = (capital * (tasa / 100)) / n
+    else interes = Math.max(capital - (i - 1) * capCuota, 0) * (tasa / 100) * factor
+    out.push({ numero: i, fecha: d.toISOString().slice(0, 10), monto: capCuota + interes, pagada: i <= p.cuotas_pagadas })
+  }
+  return out
+}
+
 export interface DatosCuota {
   capital: number
   tasa: number

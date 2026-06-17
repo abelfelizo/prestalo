@@ -5,6 +5,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryClient } from '@/lib/queryClient'
 import { asyncStoragePersister } from '@/lib/persister'
 import { flush, iniciarAutoSync } from '@/lib/outbox'
+import { PinPromptModal } from '@/components/PinPromptModal'
 
 export default function RootLayout() {
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function RootLayout() {
     >
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }} />
+      <PinPromptModal />
     </PersistQueryClientProvider>
   )
 }

@@ -1,8 +1,9 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
-import { getCobrosHoy } from '@/api/prestamos'
+import { getProximosCobros } from '@/api/prestamos'
 import { contarNoLeidas } from '@/api/alertas'
 import { contarPendientes, flush } from '@/lib/outbox'
 import { useFmt } from '@/lib/useFmt'
@@ -34,7 +35,7 @@ export default function Dashboard() {
   })
   const cobros = useQuery({
     queryKey: ['cobros-hoy', carteraId],
-    queryFn: () => getCobrosHoy(carteraId!),
+    queryFn: () => getProximosCobros(carteraId!, 7),
     enabled: !!carteraId,
   })
 
@@ -71,7 +72,7 @@ export default function Dashboard() {
       <View style={s.titleRow}>
         <Text style={s.title}>Préstalo</Text>
         <TouchableOpacity onPress={() => router.push('/alertas')} style={s.bell}>
-          <Text style={s.bellIcon}>🔔</Text>
+          <Feather name="bell" size={22} color={COLORS.text} />
           {!!noLeidas.data && (
             <View style={s.badge}><Text style={s.badgeText}>{noLeidas.data > 9 ? '9+' : noLeidas.data}</Text></View>
           )}
@@ -99,17 +100,18 @@ export default function Dashboard() {
       </View>
 
       <View style={s.sectionRow}>
-        <Text style={s.section}>Cobros de hoy</Text>
+        <Text style={s.section}>Próximos cobros (7 días)</Text>
         {lista.length > 0 && (
-          <TouchableOpacity onPress={() => router.push('/recordatorios')}>
-            <Text style={s.recordar}>💬 Recordar</Text>
+          <TouchableOpacity style={s.recordarRow} onPress={() => router.push('/recordatorios')}>
+            <Feather name="message-circle" size={14} color="#25D366" />
+            <Text style={s.recordar}>Recordar</Text>
           </TouchableOpacity>
         )}
       </View>
       {lista.length === 0 ? (
         <View style={s.emptyBox}>
-          <Text style={s.emptyEmoji}>✅</Text>
-          <Text style={s.emptyTitle}>Sin cobros pendientes hoy</Text>
+          <Feather name="check-circle" size={40} color={COLORS.success} />
+          <Text style={s.emptyTitle}>Sin cobros próximos</Text>
         </View>
       ) : (
         lista.map((p) => (
@@ -118,7 +120,7 @@ export default function Dashboard() {
               <View style={s.avatar}><Text style={s.avatarText}>{(p.clientes?.nombre || 'XX').slice(0, 2).toUpperCase()}</Text></View>
               <View>
                 <Text style={s.clienteNombre}>{p.clientes?.nombre || 'Cliente'}</Text>
-                <Text style={s.clienteSub}>Saldo: {f(p.saldo_pendiente)}</Text>
+                <Text style={s.clienteSub}>Vence {p.fecha_proximo_pago} · {f(p.saldo_pendiente)}</Text>
               </View>
             </View>
             <View style={[s.pill, p.estado === 'en_mora' && s.pillR, p.estado === 'activo' && s.pillG]}>
@@ -152,6 +154,7 @@ const s = StyleSheet.create({
   metVal: { fontSize: 18, fontWeight: '700', color: COLORS.text },
   sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1 },
+  recordarRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   recordar: { color: '#25D366', fontWeight: '700', fontSize: 13 },
   card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 14, padding: 14, marginBottom: 8 },
   cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },

@@ -1,16 +1,18 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getPrestamo, otorgarProrroga, cancelarPrestamo } from '@/api/prestamos'
 import { getPagosDePrestamo, anularPago } from '@/api/pagos'
 import { getGarantias, devolverGarantia, eliminarGarantia } from '@/api/garantias'
 import { getConfigCartera } from '@/api/config'
-import { primeraFechaPago } from '@/lib/calculos'
+import { primeraFechaPago, calendarioPrestamo } from '@/lib/calculos'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { FotosFirmadas } from '@/components/FotosFirmadas'
+import { usePinPrompt } from '@/store/pinPrompt'
 import { COLORS } from '@/lib/constants'
 import type { Frecuencia } from '@/types'
 
@@ -19,6 +21,7 @@ export default function DetallePrestamo() {
   const f = useFmt()
   const moneda = useSession((s) => s.moneda)
   const carteraId = useSession((s) => s.carteraActivaId)
+  const pedirPin = usePinPrompt((s) => s.pedirPin)
   const { id } = useLocalSearchParams<{ id: string }>()
 
   const prestamo = useQuery({ queryKey: ['prestamo', id], queryFn: () => getPrestamo(id), enabled: !!id })
@@ -62,40 +65,26 @@ export default function DetallePrestamo() {
   }
 
   function cancelar() {
-    Alert.alert('Cancelar préstamo', 'El préstamo quedará sin efecto. ¿Continuar?', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Cancelar préstamo',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await cancelarPrestamo(p.id)
-            refrescarTodo()
-            router.back()
-          } catch (e: any) {
-            Alert.alert('Error', e.message ?? 'No se pudo cancelar')
-          }
-        },
-      },
-    ])
+    pedirPin(async () => {
+      try {
+        await cancelarPrestamo(p.id)
+        refrescarTodo()
+        router.back()
+      } catch (e: any) {
+        Alert.alert('Error', e.message ?? 'No se pudo cancelar')
+      }
+    }, 'PIN para cancelar el préstamo')
   }
 
   function anular(pagoId: string) {
-    Alert.alert('Anular pago', 'Se revertirá el saldo y la caja. ¿Continuar?', [
-      { text: 'No', style: 'cancel' },
-      {
-        text: 'Anular',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await anularPago(pagoId)
-            refrescarTodo()
-          } catch (e: any) {
-            Alert.alert('Error', e.message ?? 'No se pudo anular')
-          }
-        },
-      },
-    ])
+    pedirPin(async () => {
+      try {
+        await anularPago(pagoId)
+        refrescarTodo()
+      } catch (e: any) {
+        Alert.alert('Error', e.message ?? 'No se pudo anular')
+      }
+    }, 'PIN para anular el pago')
   }
 
   async function devolver(garantiaId: string) {
@@ -158,6 +147,16 @@ export default function DetallePrestamo() {
         </TouchableOpacity>
       )}
 
+      <Text style={s.section}>Calendario de pagos</Text>
+      {calendarioPrestamo(p).map((c) => (
+        <View key={c.numero} style={[s.cuota, c.pagada && s.cuotaPagada]}>
+          <Feather name={c.pagada ? 'check-circle' : 'clock'} size={16} color={c.pagada ? COLORS.success : COLORS.textLight} />
+          <Text style={s.cuotaNum}>Cuota {c.numero}</Text>
+          <Text style={s.cuotaFecha}>{c.fecha}</Text>
+          <Text style={[s.cuotaMonto, c.pagada && { color: COLORS.textLight, textDecorationLine: 'line-through' }]}>{f(c.monto)}</Text>
+        </View>
+      ))}
+
       <Text style={s.section}>Garantías</Text>
       {(garantias.data ?? []).length === 0 ? (
         <Text style={s.empty}>Sin garantías</Text>
@@ -179,17 +178,10 @@ export default function DetallePrestamo() {
               )}
               <TouchableOpacity
                 onPress={() =>
-                  Alert.alert('Eliminar garantía', '¿Seguro?', [
-                    { text: 'Cancelar', style: 'cancel' },
-                    {
-                      text: 'Eliminar',
-                      style: 'destructive',
-                      onPress: async () => {
-                        await eliminarGarantia(g.id)
-                        queryClient.invalidateQueries({ queryKey: ['garantias', id] })
-                      },
-                    },
-                  ])
+                  pedirPin(async () => {
+                    await eliminarGarantia(g.id)
+                    queryClient.invalidateQueries({ queryKey: ['garantias', id] })
+                  }, 'PIN para eliminar la garantía')
                 }
               >
                 <Text style={s.anular}>Eliminar</Text>
@@ -251,6 +243,11 @@ const s = StyleSheet.create({
   action: { flex: 1, borderRadius: 14, padding: 14, alignItems: 'center' },
   actionText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1, marginTop: 26, marginBottom: 10 },
+  cuota: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 6 },
+  cuotaPagada: { backgroundColor: COLORS.surface, borderColor: COLORS.surface },
+  cuotaNum: { fontSize: 13, fontWeight: '700', color: COLORS.text, width: 64 },
+  cuotaFecha: { flex: 1, fontSize: 13, color: COLORS.textLight },
+  cuotaMonto: { fontSize: 14, fontWeight: '700', color: COLORS.text },
   item: { backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, padding: 12, marginBottom: 8 },
   itemRow: { flexDirection: 'row', justifyContent: 'space-between' },
   itemTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text },

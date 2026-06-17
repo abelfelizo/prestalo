@@ -6,6 +6,7 @@ import { getMovimientos, getBalanceCaja, eliminarMovimiento } from '@/api/caja'
 import { queryClient } from '@/lib/queryClient'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
+import { usePinPrompt } from '@/store/pinPrompt'
 import { COLORS } from '@/lib/constants'
 
 const MANUALES = ['capital_nuevo', 'retiro_personal', 'otro']
@@ -23,6 +24,7 @@ export default function Caja() {
   const router = useRouter()
   const f = useFmt()
   const carteraId = useSession((s) => s.carteraActivaId)
+  const pedirPin = usePinPrompt((s) => s.pedirPin)
 
   const balance = useQuery({
     queryKey: ['caja-balance', carteraId],
@@ -71,11 +73,12 @@ export default function Caja() {
                         {
                           text: 'Eliminar',
                           style: 'destructive',
-                          onPress: async () => {
-                            await eliminarMovimiento(item.id)
-                            queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
-                            queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
-                          },
+                          onPress: () =>
+                            pedirPin(async () => {
+                              await eliminarMovimiento(item.id)
+                              queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
+                              queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
+                            }, 'PIN para eliminar el movimiento'),
                         },
                         { text: 'Cancelar', style: 'cancel' },
                       ])

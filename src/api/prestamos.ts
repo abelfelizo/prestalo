@@ -80,6 +80,22 @@ export async function getCobrosHoy(carteraId: string): Promise<PrestamoConClient
   return (data ?? []) as unknown as PrestamoConCliente[]
 }
 
+/** Préstamos por cobrar en los próximos `dias` días (incluye vencidos). */
+export async function getProximosCobros(carteraId: string, dias = 7): Promise<PrestamoConCliente[]> {
+  const hasta = new Date()
+  hasta.setDate(hasta.getDate() + dias)
+  const { data, error } = await supabase
+    .from('prestamos')
+    .select(SELECT_CON_CLIENTE)
+    .eq('cartera_id', carteraId)
+    .in('estado', ['activo', 'en_mora'])
+    .lte('fecha_proximo_pago', hasta.toISOString().slice(0, 10))
+    .is('deleted_at', null)
+    .order('fecha_proximo_pago')
+  if (error) throw error
+  return (data ?? []) as unknown as PrestamoConCliente[]
+}
+
 /**
  * Crea un préstamo. El trigger `registrar_desembolso_caja` registra la salida de caja.
  * `saldo_pendiente` debe venir = total a cobrar (capital + intereses).

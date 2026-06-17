@@ -15,7 +15,7 @@ export default function Recordatorios() {
   const carteraId = useSession((s) => s.carteraActivaId)
 
   const cobros = useQuery({
-    queryKey: ['cobros-hoy', carteraId],
+    queryKey: ['recordatorios-hoy', carteraId],
     queryFn: () => getCobrosHoy(carteraId!),
     enabled: !!carteraId,
   })

@@ -7,6 +7,7 @@ import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
+import { usePinPrompt } from '@/store/pinPrompt'
 import { COLORS } from '@/lib/constants'
 
 export default function DetalleCliente() {
@@ -14,28 +15,22 @@ export default function DetalleCliente() {
   const f = useFmt()
   const moneda = useSession((s) => s.moneda)
   const carteraId = useSession((s) => s.carteraActivaId)
+  const pedirPin = usePinPrompt((s) => s.pedirPin)
   const { id } = useLocalSearchParams<{ id: string }>()
 
   const cliente = useQuery({ queryKey: ['cliente', id], queryFn: () => getCliente(id), enabled: !!id })
   const prestamos = useQuery({ queryKey: ['prestamos-cliente', id], queryFn: () => getPrestamosDeCliente(id), enabled: !!id })
 
   function eliminar() {
-    Alert.alert('Eliminar cliente', '¿Seguro? Se ocultará de tu lista.', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await eliminarCliente(id)
-            queryClient.invalidateQueries({ queryKey: ['clientes', carteraId] })
-            router.back()
-          } catch (e: any) {
-            Alert.alert('Error', e.message ?? 'No se pudo eliminar')
-          }
-        },
-      },
-    ])
+    pedirPin(async () => {
+      try {
+        await eliminarCliente(id)
+        queryClient.invalidateQueries({ queryKey: ['clientes', carteraId] })
+        router.back()
+      } catch (e: any) {
+        Alert.alert('Error', e.message ?? 'No se pudo eliminar')
+      }
+    }, 'PIN para eliminar el cliente')
   }
 
   if (cliente.isLoading || !cliente.data) {
@@ -93,6 +88,9 @@ export default function DetalleCliente() {
               <Text style={s.itemSub}>{p.estado}</Text>
             </View>
             <Text style={s.itemSub}>{p.cuotas_pagadas}/{p.num_cuotas} cuotas · {p.frecuencia_cobro}</Text>
+            {(p.estado === 'activo' || p.estado === 'en_mora') && (
+              <Text style={s.itemSub}>Próximo pago: {p.fecha_proximo_pago}</Text>
+            )}
           </TouchableOpacity>
         ))
       )}

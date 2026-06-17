@@ -8,12 +8,14 @@ import { signOut } from '@/api/auth'
 import { limpiarPinLocal } from '@/lib/pin'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
+import { usePinPrompt } from '@/store/pinPrompt'
 import { COLORS, COLOR_CARTERA } from '@/lib/constants'
 import type { ColorCartera } from '@/types'
 
 export default function Ajustes() {
   const router = useRouter()
   const { prestamistaId, carteraActivaId, setCarteraActiva: setActivaLocal, setMoneda, reset } = useSession()
+  const pedirPin = usePinPrompt((s) => s.pedirPin)
   const [emailColab, setEmailColab] = useState('')
 
   const carteras = useQuery({
@@ -124,17 +126,10 @@ export default function Ajustes() {
           key={h.id}
           style={s.heredero}
           onLongPress={() =>
-            Alert.alert('Eliminar heredero', `¿Eliminar a ${h.nombre}?`, [
-              { text: 'Cancelar', style: 'cancel' },
-              {
-                text: 'Eliminar',
-                style: 'destructive',
-                onPress: async () => {
-                  await eliminarHeredero(h.id)
-                  queryClient.invalidateQueries({ queryKey: ['herederos', prestamistaId] })
-                },
-              },
-            ])
+            pedirPin(async () => {
+              await eliminarHeredero(h.id)
+              queryClient.invalidateQueries({ queryKey: ['herederos', prestamistaId] })
+            }, `PIN para eliminar a ${h.nombre}`)
           }
         >
           <Text style={s.herederoNombre}>{h.nombre}</Text>
