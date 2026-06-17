@@ -98,7 +98,14 @@ export default function Dashboard() {
         <View style={s.met}><Text style={s.metLabel}>En mora</Text><Text style={[s.metVal, { color: COLORS.danger }]}>{m?.prestamos_en_mora ?? 0}</Text></View>
       </View>
 
-      <Text style={s.section}>Cobros de hoy</Text>
+      <View style={s.sectionRow}>
+        <Text style={s.section}>Cobros de hoy</Text>
+        {lista.length > 0 && (
+          <TouchableOpacity onPress={() => router.push('/recordatorios')}>
+            <Text style={s.recordar}>💬 Recordar</Text>
+          </TouchableOpacity>
+        )}
+      </View>
       {lista.length === 0 ? (
         <View style={s.emptyBox}>
           <Text style={s.emptyEmoji}>✅</Text>
@@ -143,7 +150,9 @@ const s = StyleSheet.create({
   met: { flex: 1, backgroundColor: COLORS.surface, borderRadius: 14, padding: 14 },
   metLabel: { fontSize: 11, color: COLORS.textLight, marginBottom: 6 },
   metVal: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1 },
+  recordar: { color: '#25D366', fontWeight: '700', fontSize: 13 },
   card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 14, padding: 14, marginBottom: 8 },
   cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#ede7f6', alignItems: 'center', justifyContent: 'center' },

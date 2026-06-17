@@ -4,6 +4,7 @@ import { View, ActivityIndicator } from 'react-native'
 import { getUsuarioActual } from '@/api/auth'
 import { getPrestamista, getCartera, registrarActividad } from '@/api/prestamistas'
 import { tienePinLocal } from '@/lib/pin'
+import { programarRecordatorioDiario } from '@/lib/notificaciones'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
@@ -26,6 +27,7 @@ export default function Index() {
         }
         setPrestamista(prest.id)
         registrarActividad(prest.id).catch(() => {})
+        programarRecordatorioDiario().catch(() => {})
         setCarteraActiva(prest.cartera_activa_id)
         if (prest.cartera_activa_id) {
           const cartera = await getCartera(prest.cartera_activa_id)
