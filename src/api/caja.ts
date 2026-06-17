@@ -12,6 +12,12 @@ export async function getMovimientos(carteraId: string): Promise<Caja[]> {
   return data ?? []
 }
 
+export async function getMovimiento(id: string): Promise<Caja | null> {
+  const { data, error } = await supabase.from('caja').select('*').eq('id', id).maybeSingle()
+  if (error) throw error
+  return data
+}
+
 export async function getBalanceCaja(carteraId: string): Promise<number> {
   const { data, error } = await supabase.from('caja').select('tipo, monto').eq('cartera_id', carteraId)
   if (error) throw error
@@ -25,4 +31,14 @@ export async function crearMovimiento(input: Inserts<'caja'>): Promise<Caja> {
   const { data, error } = await supabase.from('caja').insert(input).select().single()
   if (error) throw error
   return data
+}
+
+export async function editarMovimiento(id: string, patch: Partial<Inserts<'caja'>>): Promise<void> {
+  const { error } = await supabase.from('caja').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+export async function eliminarMovimiento(id: string): Promise<void> {
+  const { error } = await supabase.from('caja').delete().eq('id', id)
+  if (error) throw error
 }

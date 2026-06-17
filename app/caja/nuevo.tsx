@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
-import { useMutation } from '@tanstack/react-query'
+import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { editarMovimiento, getMovimiento } from '@/api/caja'
 import { ejecutar } from '@/lib/outbox'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
@@ -18,20 +19,37 @@ const OPCIONES: Opcion[] = [
 export default function NuevoMovimiento() {
   const router = useRouter()
   const carteraId = useSession((s) => s.carteraActivaId)
+  const { id } = useLocalSearchParams<{ id?: string }>()
+  const editando = !!id
+
   const [sel, setSel] = useState<Opcion>(OPCIONES[0])
   const [monto, setMonto] = useState('')
   const [descripcion, setDescripcion] = useState('')
 
+  const existente = useQuery({ queryKey: ['movimiento', id], queryFn: () => getMovimiento(id!), enabled: editando })
+  useEffect(() => {
+    const m = existente.data
+    if (m) {
+      setSel(OPCIONES.find((o) => o.tipo === m.tipo && o.categoria === m.categoria) ?? OPCIONES[0])
+      setMonto(String(m.monto))
+      setDescripcion(m.descripcion ?? '')
+    }
+  }, [existente.data])
+
   const mut = useMutation({
-    mutationFn: () =>
-      ejecutar('crearMovimiento', {
+    mutationFn: () => {
+      const payload = {
         cartera_id: carteraId!,
         tipo: sel.tipo,
         categoria: sel.categoria,
         monto: parseFloat(monto) || 0,
         descripcion: descripcion.trim() || null,
         fecha: new Date().toISOString().slice(0, 10),
-      }),
+      }
+      return editando
+        ? editarMovimiento(id!, payload).then(() => ({ encolado: false }))
+        : ejecutar('crearMovimiento', payload)
+    },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
@@ -48,7 +66,7 @@ export default function NuevoMovimiento() {
 
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
-      <Text style={s.title}>Movimiento de caja</Text>
+      <Text style={s.title}>{editando ? 'Editar movimiento' : 'Movimiento de caja'}</Text>
 
       <Text style={s.label}>Tipo</Text>
       <View style={s.chips}>

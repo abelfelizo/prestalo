@@ -17,6 +17,16 @@ export async function crearGarantia(input: Inserts<'garantias'>): Promise<Garant
   return data
 }
 
+export async function editarGarantia(id: string, patch: Partial<Inserts<'garantias'>>): Promise<void> {
+  const { error } = await supabase.from('garantias').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+export async function eliminarGarantia(id: string): Promise<void> {
+  const { error } = await supabase.from('garantias').delete().eq('id', id)
+  if (error) throw error
+}
+
 /** Marca una garantía como devuelta. */
 export async function devolverGarantia(id: string): Promise<void> {
   const { error } = await supabase

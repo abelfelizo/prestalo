@@ -3,7 +3,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getPrestamo, otorgarProrroga, cancelarPrestamo } from '@/api/prestamos'
 import { getPagosDePrestamo, anularPago } from '@/api/pagos'
-import { getGarantias, devolverGarantia } from '@/api/garantias'
+import { getGarantias, devolverGarantia, eliminarGarantia } from '@/api/garantias'
 import { getConfigCartera } from '@/api/config'
 import { primeraFechaPago } from '@/lib/calculos'
 import { useFmt } from '@/lib/useFmt'
@@ -146,6 +146,11 @@ export default function DetallePrestamo() {
           </TouchableOpacity>
         </View>
       )}
+      {activo && p.cuotas_pagadas === 0 && (
+        <TouchableOpacity style={s.editLoan} onPress={() => router.push(`/prestamo/nuevo?id=${p.id}`)}>
+          <Text style={s.editLoanText}>✏️ Editar préstamo</Text>
+        </TouchableOpacity>
+      )}
       {activo && (
         <TouchableOpacity style={s.cancelLoan} onPress={cancelar}>
           <Text style={s.cancelLoanText}>Cancelar préstamo</Text>
@@ -168,11 +173,33 @@ export default function DetallePrestamo() {
                 ))}
               </View>
             )}
-            {g.estado === 'en_poder' && (
-              <TouchableOpacity onPress={() => devolver(g.id)}>
-                <Text style={s.linkSmall}>Marcar como devuelta</Text>
+            <View style={s.gRow}>
+              <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}&id=${g.id}`)}>
+                <Text style={s.linkSmall}>Editar</Text>
               </TouchableOpacity>
-            )}
+              {g.estado === 'en_poder' && (
+                <TouchableOpacity onPress={() => devolver(g.id)}>
+                  <Text style={s.linkSmall}>Marcar como devuelta</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert('Eliminar garantía', '¿Seguro?', [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Eliminar',
+                      style: 'destructive',
+                      onPress: async () => {
+                        await eliminarGarantia(g.id)
+                        queryClient.invalidateQueries({ queryKey: ['garantias', id] })
+                      },
+                    },
+                  ])
+                }
+              >
+                <Text style={s.anular}>Eliminar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         ))
       )}
@@ -240,7 +267,10 @@ const s = StyleSheet.create({
   foto: { width: 64, height: 64, borderRadius: 8, backgroundColor: COLORS.surface },
   link: { color: COLORS.info, fontWeight: '600', marginTop: 8, fontSize: 14 },
   linkSmall: { color: COLORS.info, fontWeight: '600', marginTop: 8, fontSize: 13 },
+  gRow: { flexDirection: 'row', gap: 16, marginTop: 8, alignItems: 'center' },
   anular: { color: COLORS.danger, fontWeight: '600', marginTop: 6, fontSize: 12 },
+  editLoan: { borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border, marginTop: 10 },
+  editLoanText: { color: COLORS.text, fontWeight: '700', fontSize: 14 },
   cancelLoan: { borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger, marginTop: 10 },
   cancelLoanText: { color: COLORS.danger, fontWeight: '700', fontSize: 14 },
   cancel: { textAlign: 'center', color: COLORS.textLight, marginTop: 24, fontSize: 14 },

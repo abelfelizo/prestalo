@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getClientes } from '@/api/clientes'
+import { getPrestamo, editarPrestamo } from '@/api/prestamos'
 import { calcularPrestamo, primeraFechaPago } from '@/lib/calculos'
 import { ejecutar } from '@/lib/outbox'
 import { useFmt } from '@/lib/useFmt'
@@ -17,6 +18,8 @@ export default function NuevoPrestamo() {
   const router = useRouter()
   const f = useFmt()
   const carteraId = useSession((s) => s.carteraActivaId)
+  const { id } = useLocalSearchParams<{ id?: string }>()
+  const editando = !!id
 
   const { data: clientes } = useQuery({
     queryKey: ['clientes', carteraId],
@@ -31,6 +34,19 @@ export default function NuevoPrestamo() {
   const [frecuencia, setFrecuencia] = useState<Frecuencia>('semanal')
   const [numCuotas, setNumCuotas] = useState('')
 
+  const existente = useQuery({ queryKey: ['prestamo', id], queryFn: () => getPrestamo(id!), enabled: editando })
+  useEffect(() => {
+    const p = existente.data
+    if (p) {
+      setClienteId(p.cliente_id)
+      setCapital(String(Number(p.monto_capital)))
+      setTasa(String(Number(p.tasa_interes)))
+      setModelo(p.modelo_interes as ModeloInteres)
+      setFrecuencia(p.frecuencia_cobro as Frecuencia)
+      setNumCuotas(String(p.num_cuotas))
+    }
+  }, [existente.data])
+
   const cap = parseFloat(capital) || 0
   const t = parseFloat(tasa) || 0
   const n = parseInt(numCuotas, 10) || 0
@@ -39,8 +55,8 @@ export default function NuevoPrestamo() {
 
   const mut = useMutation({
     mutationFn: () => {
-      const fechaInicio = new Date().toISOString().slice(0, 10)
-      return ejecutar('crearPrestamo', {
+      const fechaInicio = existente.data?.fecha_inicio ?? new Date().toISOString().slice(0, 10)
+      const datos = {
         cartera_id: carteraId!,
         cliente_id: clienteId!,
         monto_capital: cap,
@@ -51,18 +67,22 @@ export default function NuevoPrestamo() {
         num_cuotas: n,
         fecha_inicio: fechaInicio,
         fecha_proximo_pago: primeraFechaPago(fechaInicio, frecuencia),
-        estado: 'activo',
-      })
+        estado: 'activo' as const,
+      }
+      return editando
+        ? editarPrestamo(id!, datos).then(() => ({ encolado: false }))
+        : ejecutar('crearPrestamo', datos)
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['prestamos', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['metricas', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
       queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
+      if (editando) queryClient.invalidateQueries({ queryKey: ['prestamo', id] })
       if (res?.encolado) Alert.alert('Sin conexión', 'El préstamo se guardó y se enviará al recuperar internet.')
       router.back()
     },
-    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo crear el préstamo'),
+    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo guardar el préstamo'),
   })
 
   function guardar() {
@@ -74,7 +94,7 @@ export default function NuevoPrestamo() {
 
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
-      <Text style={s.title}>Nuevo préstamo</Text>
+      <Text style={s.title}>{editando ? 'Editar préstamo' : 'Nuevo préstamo'}</Text>
 
       <Text style={s.label}>Cliente *</Text>
       {(clientes ?? []).length === 0 ? (

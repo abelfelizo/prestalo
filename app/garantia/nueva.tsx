@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Image } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
-import { crearGarantia } from '@/api/garantias'
+import { crearGarantia, editarGarantia, getGarantias } from '@/api/garantias'
 import { subirFotoGarantia } from '@/lib/upload'
 import { queryClient } from '@/lib/queryClient'
 import { COLORS } from '@/lib/constants'
@@ -12,11 +12,22 @@ const TIPOS = ['tarjeta_bancaria', 'cedula', 'titulo_vehiculo', 'propiedad', 'jo
 
 export default function NuevaGarantia() {
   const router = useRouter()
-  const { prestamoId } = useLocalSearchParams<{ prestamoId: string }>()
+  const { prestamoId, id } = useLocalSearchParams<{ prestamoId: string; id?: string }>()
+  const editando = !!id
   const [tipo, setTipo] = useState<(typeof TIPOS)[number]>('cedula')
   const [descripcion, setDescripcion] = useState('')
   const [fotos, setFotos] = useState<string[]>([])
   const [subiendo, setSubiendo] = useState(false)
+
+  const existentes = useQuery({ queryKey: ['garantias', prestamoId], queryFn: () => getGarantias(prestamoId), enabled: editando })
+  useEffect(() => {
+    const g = existentes.data?.find((x) => x.id === id)
+    if (g) {
+      setTipo((TIPOS as readonly string[]).includes(g.tipo) ? (g.tipo as (typeof TIPOS)[number]) : 'otro')
+      setDescripcion(g.descripcion ?? '')
+      setFotos(g.foto_urls ?? [])
+    }
+  }, [existentes.data])
 
   async function agregarFoto() {
     const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.6 })
@@ -33,15 +44,17 @@ export default function NuevaGarantia() {
   }
 
   const mut = useMutation({
-    mutationFn: () =>
-      crearGarantia({
-        prestamo_id: prestamoId,
-        tipo,
-        descripcion: descripcion.trim() || null,
-        estado: 'en_poder',
-        fecha_recibida: new Date().toISOString().slice(0, 10),
-        foto_urls: fotos.length ? fotos : null,
-      }),
+    mutationFn: () => {
+      const payload = { tipo, descripcion: descripcion.trim() || null, foto_urls: fotos.length ? fotos : null }
+      return editando
+        ? editarGarantia(id!, payload)
+        : crearGarantia({
+            prestamo_id: prestamoId,
+            estado: 'en_poder',
+            fecha_recibida: new Date().toISOString().slice(0, 10),
+            ...payload,
+          }).then(() => {})
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['garantias', prestamoId] })
       router.back()
@@ -51,7 +64,7 @@ export default function NuevaGarantia() {
 
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
-      <Text style={s.title}>Nueva garantía</Text>
+      <Text style={s.title}>{editando ? 'Editar garantía' : 'Nueva garantía'}</Text>
 
       <Text style={s.label}>Tipo</Text>
       <View style={s.chips}>

@@ -29,6 +29,12 @@ export async function marcarRefinanciado(prestamoId: string): Promise<void> {
   if (error) throw error
 }
 
+/** Edita campos de un préstamo (usar solo si no tiene pagos registrados). */
+export async function editarPrestamo(id: string, patch: Partial<Inserts<'prestamos'>>): Promise<void> {
+  const { error } = await supabase.from('prestamos').update(patch).eq('id', id)
+  if (error) throw error
+}
+
 /** Cancela un préstamo (queda sin efecto, no se cobra). */
 export async function cancelarPrestamo(prestamoId: string): Promise<void> {
   const { error } = await supabase

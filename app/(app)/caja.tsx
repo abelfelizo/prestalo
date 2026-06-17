@@ -1,10 +1,14 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import { getMovimientos, getBalanceCaja } from '@/api/caja'
+import { Alert } from 'react-native'
+import { getMovimientos, getBalanceCaja, eliminarMovimiento } from '@/api/caja'
+import { queryClient } from '@/lib/queryClient'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
+
+const MANUALES = ['capital_nuevo', 'retiro_personal', 'otro']
 
 const CAT_LABEL: Record<string, string> = {
   capital_nuevo: 'Capital nuevo',
@@ -54,17 +58,39 @@ export default function Caja() {
         ListEmptyComponent={<Text style={s.empty}>Sin movimientos todavía</Text>}
         renderItem={({ item }) => {
           const entrada = item.tipo === 'entrada'
+          const editable = MANUALES.includes(item.categoria)
           return (
-            <View style={s.row}>
+            <TouchableOpacity
+              style={s.row}
+              activeOpacity={editable ? 0.6 : 1}
+              onLongPress={
+                editable
+                  ? () =>
+                      Alert.alert('Movimiento', CAT_LABEL[item.categoria] ?? item.categoria, [
+                        { text: 'Editar', onPress: () => router.push(`/caja/nuevo?id=${item.id}`) },
+                        {
+                          text: 'Eliminar',
+                          style: 'destructive',
+                          onPress: async () => {
+                            await eliminarMovimiento(item.id)
+                            queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })
+                            queryClient.invalidateQueries({ queryKey: ['caja-balance', carteraId] })
+                          },
+                        },
+                        { text: 'Cancelar', style: 'cancel' },
+                      ])
+                  : undefined
+              }
+            >
               <View style={{ flex: 1 }}>
                 <Text style={s.cat}>{CAT_LABEL[item.categoria] ?? item.categoria}</Text>
                 {!!item.descripcion && <Text style={s.desc}>{item.descripcion}</Text>}
-                <Text style={s.fecha}>{item.fecha}</Text>
+                <Text style={s.fecha}>{item.fecha}{editable ? ' · mantén presionado' : ''}</Text>
               </View>
               <Text style={[s.monto, { color: entrada ? COLORS.success : COLORS.danger }]}>
                 {entrada ? '+' : '−'} {f(item.monto)}
               </Text>
-            </View>
+            </TouchableOpacity>
           )
         }}
       />
