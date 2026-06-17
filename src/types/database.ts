@@ -105,6 +105,38 @@ export type Database = {
           },
         ]
       }
+      cartera_colaboradores: {
+        Row: {
+          cartera_id: string
+          created_at: string
+          id: string
+          rol: string
+          user_id: string
+        }
+        Insert: {
+          cartera_id: string
+          created_at?: string
+          id?: string
+          rol?: string
+          user_id: string
+        }
+        Update: {
+          cartera_id?: string
+          created_at?: string
+          id?: string
+          rol?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cartera_colaboradores_cartera_id_fkey"
+            columns: ["cartera_id"]
+            isOneToOne: false
+            referencedRelation: "carteras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carteras: {
         Row: {
           activa: boolean
@@ -1883,6 +1915,10 @@ export type Database = {
       anular_pago: { Args: { p_pago_id: string }; Returns: undefined }
       es_mi_cartera: { Args: { cid: string }; Returns: boolean }
       es_mi_prestamo: { Args: { pid: string }; Returns: boolean }
+      invitar_colaborador: {
+        Args: { p_cartera_id: string; p_email: string }
+        Returns: string
+      }
       marcar_vencidos: { Args: never; Returns: undefined }
     }
     Enums: {

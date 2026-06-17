@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native'
+import { useState } from 'react'
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { getCarteras, setCarteraActiva } from '@/api/prestamistas'
+import { getCarterasAccesibles, setCarteraActiva, invitarColaborador } from '@/api/prestamistas'
 import { getHerederos, eliminarHeredero } from '@/api/herederos'
 import { signOut } from '@/api/auth'
 import { limpiarPinLocal } from '@/lib/pin'
@@ -13,11 +14,11 @@ import type { ColorCartera } from '@/types'
 export default function Ajustes() {
   const router = useRouter()
   const { prestamistaId, carteraActivaId, setCarteraActiva: setActivaLocal, setMoneda, reset } = useSession()
+  const [emailColab, setEmailColab] = useState('')
 
   const carteras = useQuery({
-    queryKey: ['carteras', prestamistaId],
-    queryFn: () => getCarteras(prestamistaId!),
-    enabled: !!prestamistaId,
+    queryKey: ['carteras-accesibles'],
+    queryFn: getCarterasAccesibles,
   })
 
   const herederos = useQuery({
@@ -27,12 +28,27 @@ export default function Ajustes() {
   })
 
   async function cambiarCartera(id: string, moneda: string) {
-    if (!prestamistaId) return
-    await setCarteraActiva(prestamistaId, id)
+    if (prestamistaId) await setCarteraActiva(prestamistaId, id).catch(() => {})
     setActivaLocal(id)
     setMoneda(moneda)
     queryClient.invalidateQueries()
     Alert.alert('Cartera activa actualizada')
+  }
+
+  async function compartir() {
+    if (!carteraActivaId) return
+    if (!emailColab.trim()) return Alert.alert('Escribe el email del cobrador')
+    try {
+      const r = await invitarColaborador(carteraActivaId, emailColab.trim())
+      if (r === 'no_existe') {
+        Alert.alert('No encontrado', 'Ese email no tiene cuenta en Préstalo. Pídele que se registre primero.')
+      } else {
+        setEmailColab('')
+        Alert.alert('Listo', 'La cartera fue compartida con ese cobrador.')
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e.message ?? 'No se pudo compartir')
+    }
   }
 
   async function cerrarSesion() {
@@ -72,6 +88,27 @@ export default function Ajustes() {
       <TouchableOpacity style={s.link} onPress={() => router.push('/cartera/nueva')}>
         <Text style={s.linkText}>＋  Nueva cartera</Text>
       </TouchableOpacity>
+
+      {!!prestamistaId && (
+        <>
+          <Text style={s.section}>Compartir cartera activa</Text>
+          <Text style={s.hint}>Invita a un cobrador (debe tener cuenta en Préstalo).</Text>
+          <View style={s.shareRow}>
+            <TextInput
+              style={s.shareInput}
+              value={emailColab}
+              onChangeText={setEmailColab}
+              placeholder="email del cobrador"
+              placeholderTextColor="#bbb"
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            <TouchableOpacity style={s.shareBtn} onPress={compartir}>
+              <Text style={s.shareBtnText}>Invitar</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       <Text style={s.section}>Cobranza</Text>
       <TouchableOpacity style={s.link} onPress={() => router.push('/reportes')}>
@@ -126,6 +163,11 @@ const s = StyleSheet.create({
   activa: { fontSize: 12, color: COLORS.success, fontWeight: '700', marginLeft: 8 },
   link: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
   linkText: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  hint: { fontSize: 12, color: COLORS.textLight, marginBottom: 8 },
+  shareRow: { flexDirection: 'row', gap: 8 },
+  shareInput: { flex: 1, backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
+  shareBtn: { backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 16, justifyContent: 'center' },
+  shareBtnText: { color: '#fff', fontWeight: '700' },
   heredero: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
   herederoNombre: { fontSize: 15, fontWeight: '700', color: COLORS.text },
   herederoSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },

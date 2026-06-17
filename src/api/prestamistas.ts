@@ -29,6 +29,23 @@ export async function getCarteras(prestamistaId: string): Promise<Cartera[]> {
   return data ?? []
 }
 
+/** Carteras a las que el usuario tiene acceso (propias + compartidas). RLS filtra. */
+export async function getCarterasAccesibles(): Promise<Cartera[]> {
+  const { data, error } = await supabase.from('carteras').select('*').eq('activa', true).order('created_at')
+  if (error) throw error
+  return data ?? []
+}
+
+/** Invita a un colaborador (por email) a la cartera. Devuelve 'ok' | 'no_existe'. */
+export async function invitarColaborador(carteraId: string, email: string): Promise<string> {
+  const { data, error } = await supabase.rpc('invitar_colaborador', {
+    p_cartera_id: carteraId,
+    p_email: email,
+  })
+  if (error) throw error
+  return String(data)
+}
+
 export async function getCartera(id: string): Promise<Cartera | null> {
   const { data, error } = await supabase.from('carteras').select('*').eq('id', id).maybeSingle()
   if (error) throw error

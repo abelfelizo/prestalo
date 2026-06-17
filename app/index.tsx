@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { View, ActivityIndicator } from 'react-native'
 import { getUsuarioActual } from '@/api/auth'
-import { getPrestamista, getCartera, registrarActividad } from '@/api/prestamistas'
+import { getPrestamista, getCartera, getCarterasAccesibles, registrarActividad } from '@/api/prestamistas'
 import { tienePinLocal } from '@/lib/pin'
 import { programarRecordatorioDiario } from '@/lib/notificaciones'
 import { useSession } from '@/store/session'
@@ -10,7 +10,7 @@ import { COLORS } from '@/lib/constants'
 
 export default function Index() {
   const router = useRouter()
-  const { setPrestamista, setCarteraActiva, setMoneda } = useSession()
+  const { setPrestamista, setCarteraActiva, setMoneda, setDesbloqueado } = useSession()
 
   useEffect(() => {
     ;(async () => {
@@ -22,6 +22,15 @@ export default function Index() {
         }
         const prest = await getPrestamista(user.id)
         if (!prest) {
+          // ¿Es un cobrador con carteras compartidas? Entra directo.
+          const compartidas = await getCarterasAccesibles().catch(() => [])
+          if (compartidas.length > 0) {
+            setCarteraActiva(compartidas[0].id)
+            setMoneda(compartidas[0].moneda)
+            setDesbloqueado(true)
+            router.replace('/(app)/dashboard')
+            return
+          }
           router.replace('/(auth)/onboarding')
           return
         }
