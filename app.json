@@ -28,7 +28,8 @@
       [
         "expo-image-picker",
         { "photosPermission": "Préstalo necesita acceso a tus fotos para adjuntar garantías." }
-      ]
+      ],
+      "expo-notifications"
     ],
     "scheme": "prestalo"
   }
