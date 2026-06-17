@@ -9,12 +9,14 @@ import {
   biometriaDisponible,
   autenticarBiometria,
 } from '@/lib/pin'
+import { signOut } from '@/api/auth'
+import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
 export default function Lock() {
   const router = useRouter()
-  const { setDesbloqueado } = useSession()
+  const { setDesbloqueado, reset } = useSession()
   const [modo, setModo] = useState<'verificar' | 'crear' | null>(null)
   const [pin, setPin] = useState('')
   const [confirmar, setConfirmar] = useState('')
@@ -93,6 +95,14 @@ export default function Lock() {
     ])
   }
 
+  async function cerrarSesion() {
+    await signOut().catch(() => {})
+    await limpiarPinLocal()
+    reset()
+    queryClient.clear()
+    router.replace('/(auth)/login')
+  }
+
   const teclado = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫']
   const sub =
     modo === 'crear'
@@ -131,6 +141,9 @@ export default function Lock() {
           <Text style={s.olvide}>Olvidé mi PIN</Text>
         </TouchableOpacity>
       )}
+      <TouchableOpacity onPress={cerrarSesion} style={{ marginTop: 16 }}>
+        <Text style={s.olvide}>Cerrar sesión</Text>
+      </TouchableOpacity>
     </View>
   )
 }
