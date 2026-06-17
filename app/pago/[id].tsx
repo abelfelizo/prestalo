@@ -14,6 +14,7 @@ import {
   type TipoPagoApp,
 } from '@/lib/calculos'
 import { enviarComprobante } from '@/lib/whatsapp'
+import { Boton } from '@/components/Boton'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
@@ -200,9 +201,7 @@ export default function RegistrarPago() {
           : 'Mora manual. Actívala en Ajustes → Configuración de mora para calcularla sola.'}
       </Text>
 
-      <TouchableOpacity style={s.btn} onPress={confirmar} disabled={mut.isPending}>
-        {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Confirmar pago</Text>}
-      </TouchableOpacity>
+      <Boton variant="success" icon="check-circle" label="Confirmar pago" loading={mut.isPending} onPress={confirmar} style={{ marginTop: 24 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { editarMovimiento, getMovimiento } from '@/api/caja'
 import { ejecutar } from '@/lib/outbox'
+import { Boton } from '@/components/Boton'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -82,9 +83,7 @@ export default function NuevoMovimiento() {
       <Text style={s.label}>Descripción</Text>
       <TextInput style={s.input} value={descripcion} onChangeText={setDescripcion} placeholder="Opcional" placeholderTextColor="#bbb" />
 
-      <TouchableOpacity style={s.btn} onPress={guardar} disabled={mut.isPending}>
-        {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Registrar</Text>}
-      </TouchableOpacity>
+      <Boton icon="check" label={editando ? 'Guardar' : 'Registrar'} loading={mut.isPending} onPress={guardar} style={{ marginTop: 28 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

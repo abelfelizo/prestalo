@@ -1,13 +1,15 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { Alert } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { getMovimientos, getBalanceCaja, eliminarMovimiento } from '@/api/caja'
 import { queryClient } from '@/lib/queryClient'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { usePinPrompt } from '@/store/pinPrompt'
-import { COLORS } from '@/lib/constants'
+import { COLORS, GRADIENTS } from '@/lib/constants'
 
 const MANUALES = ['capital_nuevo', 'retiro_personal', 'otro']
 
@@ -44,14 +46,15 @@ export default function Caja() {
       <View style={s.header}>
         <Text style={s.title}>Caja</Text>
         <TouchableOpacity style={s.addBtn} onPress={() => router.push('/caja/nuevo')}>
-          <Text style={s.addText}>+ Movimiento</Text>
+          <Feather name="plus" size={15} color="#fff" />
+          <Text style={s.addText}>Movimiento</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={s.balanceBox}>
+      <LinearGradient colors={GRADIENTS.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.balanceBox}>
         <Text style={s.balanceLabel}>Balance en caja</Text>
         <Text style={s.balanceVal}>{f(balance.data ?? 0)}</Text>
-      </View>
+      </LinearGradient>
 
       <FlatList
         data={movs.data ?? []}
@@ -106,11 +109,11 @@ const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 56 },
   title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
-  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 5 },
   addText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  balanceBox: { backgroundColor: COLORS.primary, marginHorizontal: 16, borderRadius: 16, padding: 20, alignItems: 'center' },
-  balanceLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-  balanceVal: { fontSize: 32, fontWeight: '800', color: COLORS.gold, marginTop: 4 },
+  balanceBox: { marginHorizontal: 16, borderRadius: 20, padding: 22, alignItems: 'center', overflow: 'hidden' },
+  balanceLabel: { fontSize: 12.5, color: 'rgba(255,255,255,0.85)', fontWeight: '600' },
+  balanceVal: { fontSize: 32, fontWeight: '800', color: '#FFFFFF', marginTop: 4 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, padding: 14, marginBottom: 8 },
   cat: { fontSize: 14, fontWeight: '700', color: COLORS.text },
   desc: { fontSize: 12, color: COLORS.textLight, marginTop: 1 },

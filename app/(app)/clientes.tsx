@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getClientes } from '@/api/clientes'
@@ -28,7 +29,8 @@ export default function Clientes() {
       <View style={s.header}>
         <Text style={s.title}>Clientes</Text>
         <TouchableOpacity style={s.addBtn} onPress={() => router.push('/cliente/nuevo')}>
-          <Text style={s.addText}>+ Nuevo</Text>
+          <Feather name="plus" size={15} color="#fff" />
+          <Text style={s.addText}>Nuevo</Text>
         </TouchableOpacity>
       </View>
       <TextInput
@@ -72,7 +74,7 @@ const s = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 56 },
   title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
-  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10 },
+  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 5 },
   addText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   search: { marginHorizontal: 16, marginBottom: 6, backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },

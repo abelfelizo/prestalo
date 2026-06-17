@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
@@ -8,7 +9,7 @@ import { contarNoLeidas } from '@/api/alertas'
 import { contarPendientes, flush } from '@/lib/outbox'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
-import { COLORS } from '@/lib/constants'
+import { COLORS, GRADIENTS } from '@/lib/constants'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -88,15 +89,24 @@ export default function Dashboard() {
         </TouchableOpacity>
       )}
 
-      <View style={s.hero}>
+      <LinearGradient colors={GRADIENTS.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.hero}>
         <Text style={s.heroLabel}>Capital en la calle</Text>
         <Text style={s.heroMonto}>{f(m?.capital_en_calle ?? 0)}</Text>
-        <Text style={s.heroSub}>{m?.clientes_activos ?? 0} clientes activos</Text>
-      </View>
+        <View style={s.heroFoot}>
+          <Feather name="users" size={13} color="rgba(255,255,255,0.85)" />
+          <Text style={s.heroSub}>{m?.clientes_activos ?? 0} clientes activos</Text>
+        </View>
+      </LinearGradient>
 
       <View style={s.grid}>
-        <View style={s.met}><Text style={s.metLabel}>Total prestado</Text><Text style={s.metVal}>{f(m?.total_prestado ?? 0)}</Text></View>
-        <View style={s.met}><Text style={s.metLabel}>En mora</Text><Text style={[s.metVal, { color: COLORS.danger }]}>{m?.prestamos_en_mora ?? 0}</Text></View>
+        <View style={s.met}>
+          <Text style={s.metLabel}>Total prestado</Text>
+          <Text style={s.metVal}>{f(m?.total_prestado ?? 0)}</Text>
+        </View>
+        <View style={s.met}>
+          <Text style={s.metLabel}>En mora</Text>
+          <Text style={[s.metVal, { color: COLORS.danger }]}>{m?.prestamos_en_mora ?? 0}</Text>
+        </View>
       </View>
 
       <View style={s.sectionRow}>
@@ -144,14 +154,15 @@ const s = StyleSheet.create({
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
   pend: { backgroundColor: '#fff4e5', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: COLORS.warning },
   pendText: { color: COLORS.warning, fontWeight: '700', fontSize: 13, textAlign: 'center' },
-  hero: { backgroundColor: COLORS.primary, borderRadius: 20, padding: 24, marginBottom: 16, alignItems: 'center' },
-  heroLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 6 },
-  heroMonto: { fontSize: 38, fontWeight: '800', color: COLORS.gold, letterSpacing: -1 },
-  heroSub: { fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 },
+  hero: { borderRadius: 22, padding: 24, marginBottom: 14, alignItems: 'center', overflow: 'hidden' },
+  heroLabel: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginBottom: 6, fontWeight: '600' },
+  heroMonto: { fontSize: 38, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
+  heroFoot: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
+  heroSub: { fontSize: 12.5, color: 'rgba(255,255,255,0.85)' },
   grid: { flexDirection: 'row', gap: 10, marginBottom: 24 },
-  met: { flex: 1, backgroundColor: COLORS.surface, borderRadius: 14, padding: 14 },
-  metLabel: { fontSize: 11, color: COLORS.textLight, marginBottom: 6 },
-  metVal: { fontSize: 18, fontWeight: '700', color: COLORS.text },
+  met: { flex: 1, backgroundColor: COLORS.bg, borderRadius: 16, padding: 15, borderWidth: 1, borderColor: COLORS.border },
+  metLabel: { fontSize: 11.5, color: COLORS.textLight, marginBottom: 6, fontWeight: '600' },
+  metVal: { fontSize: 19, fontWeight: '800', color: COLORS.text },
   sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1 },
   recordarRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },

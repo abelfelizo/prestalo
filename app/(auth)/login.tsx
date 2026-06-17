@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { signIn, signUp } from '@/api/auth'
 import { getPrestamista } from '@/api/prestamistas'
-import { COLORS } from '@/lib/constants'
+import { COLORS, GRADIENTS } from '@/lib/constants'
 
 export default function Login() {
   const router = useRouter()
@@ -47,6 +48,7 @@ export default function Login() {
   }
 
   return (
+    <LinearGradient colors={GRADIENTS.authBg} style={{ flex: 1 }}>
     <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Text style={s.emoji}>💰</Text>
       <Text style={s.title}>Préstalo</Text>
@@ -85,17 +87,18 @@ export default function Login() {
         <Text style={s.heredero}>Soy heredero</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
+    </LinearGradient>
   )
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary, justifyContent: 'center', padding: 28 },
+  container: { flex: 1, backgroundColor: 'transparent', justifyContent: 'center', padding: 28 },
   emoji: { fontSize: 52, textAlign: 'center', marginBottom: 8 },
-  title: { fontSize: 40, fontWeight: '800', color: COLORS.gold, textAlign: 'center' },
-  sub: { fontSize: 15, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 32 },
-  input: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 15, fontSize: 15, color: '#fff', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)', marginBottom: 12 },
-  btn: { backgroundColor: COLORS.gold, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
+  title: { fontSize: 42, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' },
+  sub: { fontSize: 15, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginBottom: 32 },
+  input: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 14, padding: 15, fontSize: 15, color: '#fff', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)', marginBottom: 12 },
+  btn: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 8 },
   btnText: { fontSize: 16, fontWeight: '700', color: COLORS.primary },
-  toggle: { color: 'rgba(255,255,255,0.6)', textAlign: 'center', marginTop: 20, fontSize: 14 },
-  heredero: { color: 'rgba(201,168,76,0.8)', textAlign: 'center', marginTop: 18, fontSize: 13 },
+  toggle: { color: 'rgba(255,255,255,0.85)', textAlign: 'center', marginTop: 20, fontSize: 14 },
+  heredero: { color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 18, fontSize: 13 },
 })

@@ -6,6 +6,7 @@ import { getClientes } from '@/api/clientes'
 import { getPrestamo, editarPrestamo } from '@/api/prestamos'
 import { calcularPrestamo, primeraFechaPago } from '@/lib/calculos'
 import { ejecutar } from '@/lib/outbox'
+import { Boton } from '@/components/Boton'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
@@ -150,9 +151,7 @@ export default function NuevoPrestamo() {
         </View>
       )}
 
-      <TouchableOpacity style={s.btn} onPress={guardar} disabled={mut.isPending}>
-        {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Crear préstamo</Text>}
-      </TouchableOpacity>
+      <Boton icon="check" label={editando ? 'Guardar cambios' : 'Crear préstamo'} loading={mut.isPending} onPress={guardar} style={{ marginTop: 24 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

@@ -21,6 +21,16 @@ export const COLORS = {
   glassTint: 'light' as const,
 }
 
+// Degradados (para LinearGradient: start→end)
+export const GRADIENTS = {
+  hero: ['#4F46E5', '#7C3AED'] as const, // índigo → violeta
+  primary: ['#6366F1', '#4F46E5'] as const,
+  accent: ['#22D3EE', '#0891B2'] as const, // cian
+  success: ['#34D399', '#059669'] as const,
+  danger: ['#F87171', '#DC2626'] as const,
+  authBg: ['#312E81', '#4F46E5', '#6D28D9'] as const, // fondo de auth, profundo
+}
+
 // carteras.color es un enum semántico en la BD → hex para la UI
 export const COLOR_CARTERA: Record<ColorCartera, string> = {
   green: '#10B981',

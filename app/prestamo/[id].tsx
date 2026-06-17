@@ -114,14 +114,16 @@ export default function DetallePrestamo() {
 
       <View style={s.actions}>
         <TouchableOpacity style={[s.action, { backgroundColor: COLORS.success }]} onPress={() => router.push(`/pago/${p.id}`)}>
-          <Text style={s.actionText}>✅ Registrar pago</Text>
+          <Feather name="check-circle" size={16} color="#fff" />
+          <Text style={s.actionText}>Registrar pago</Text>
         </TouchableOpacity>
         {!!p.clientes?.telefono && (
           <TouchableOpacity
             style={[s.action, { backgroundColor: '#25D366' }]}
             onPress={() => cobrarPorWhatsApp(p.clientes!.telefono!, p.clientes!.nombre, Number(p.saldo_pendiente), moneda, config.data?.mensaje_mora_whatsapp)}
           >
-            <Text style={s.actionText}>💬 Cobrar</Text>
+            <Feather name="message-circle" size={16} color="#fff" />
+            <Text style={s.actionText}>Cobrar</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -129,10 +131,12 @@ export default function DetallePrestamo() {
       {activo && (
         <View style={s.actions}>
           <TouchableOpacity style={[s.action, { backgroundColor: COLORS.info }]} onPress={prorrogar}>
-            <Text style={s.actionText}>🕓 Prórroga</Text>
+            <Feather name="clock" size={16} color="#fff" />
+            <Text style={s.actionText}>Prórroga</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[s.action, { backgroundColor: COLORS.warning }]} onPress={() => router.push(`/prestamo/refinanciar?id=${p.id}`)}>
-            <Text style={s.actionText}>🔄 Refinanciar</Text>
+            <Feather name="refresh-cw" size={16} color="#fff" />
+            <Text style={s.actionText}>Refinanciar</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -240,7 +244,7 @@ const s = StyleSheet.create({
   rowLabel: { fontSize: 14, color: COLORS.textLight },
   rowVal: { fontSize: 14, fontWeight: '700', color: COLORS.text },
   actions: { flexDirection: 'row', gap: 10, marginTop: 16 },
-  action: { flex: 1, borderRadius: 14, padding: 14, alignItems: 'center' },
+  action: { flex: 1, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   actionText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1, marginTop: 26, marginBottom: 10 },
   cuota: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 6 },
