@@ -1,14 +1,24 @@
 import { useState, useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
-import { verificarPinLocal, biometriaDisponible, autenticarBiometria } from '@/lib/pin'
+import {
+  tienePinLocal,
+  guardarPinLocal,
+  verificarPinLocal,
+  limpiarPinLocal,
+  biometriaDisponible,
+  autenticarBiometria,
+} from '@/lib/pin'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
 export default function Lock() {
   const router = useRouter()
   const { setDesbloqueado } = useSession()
+  const [modo, setModo] = useState<'verificar' | 'crear' | null>(null)
   const [pin, setPin] = useState('')
+  const [confirmar, setConfirmar] = useState('')
+  const [paso, setPaso] = useState<'ingresar' | 'confirmar'>('ingresar')
 
   function desbloquear() {
     setDesbloqueado(true)
@@ -17,31 +27,84 @@ export default function Lock() {
 
   useEffect(() => {
     ;(async () => {
-      if (await biometriaDisponible()) {
+      const tiene = await tienePinLocal()
+      setModo(tiene ? 'verificar' : 'crear')
+      if (tiene && (await biometriaDisponible())) {
         if (await autenticarBiometria()) desbloquear()
       }
     })()
   }, [])
 
   async function onNumero(n: string) {
-    const nuevo = pin + n
-    if (nuevo.length > 4) return
-    setPin(nuevo)
-    if (nuevo.length === 4) {
-      if (await verificarPinLocal(nuevo)) desbloquear()
-      else {
+    if (modo === 'verificar') {
+      const nuevo = pin + n
+      if (nuevo.length > 4) return
+      setPin(nuevo)
+      if (nuevo.length === 4) {
+        if (await verificarPinLocal(nuevo)) desbloquear()
+        else {
+          setPin('')
+          Alert.alert('PIN incorrecto', 'Intenta de nuevo')
+        }
+      }
+      return
+    }
+    // modo crear
+    if (paso === 'ingresar') {
+      const nuevo = pin + n
+      if (nuevo.length > 4) return
+      setPin(nuevo)
+      if (nuevo.length === 4) {
+        setConfirmar(nuevo)
         setPin('')
-        Alert.alert('PIN incorrecto', 'Intenta de nuevo')
+        setPaso('confirmar')
+      }
+    } else {
+      const nuevo = pin + n
+      if (nuevo.length > 4) return
+      setPin(nuevo)
+      if (nuevo.length === 4) {
+        if (nuevo === confirmar) {
+          await guardarPinLocal(nuevo)
+          desbloquear()
+        } else {
+          setPin('')
+          setConfirmar('')
+          setPaso('ingresar')
+          Alert.alert('No coinciden', 'Los PIN no coinciden. Intenta de nuevo.')
+        }
       }
     }
   }
 
+  async function olvidePin() {
+    Alert.alert('Restablecer PIN', 'Crearás un PIN nuevo. ¿Continuar?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Sí',
+        onPress: async () => {
+          await limpiarPinLocal()
+          setPin('')
+          setConfirmar('')
+          setPaso('ingresar')
+          setModo('crear')
+        },
+      },
+    ])
+  }
+
   const teclado = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫']
+  const sub =
+    modo === 'crear'
+      ? paso === 'ingresar'
+        ? 'Crea un PIN de 4 dígitos'
+        : 'Confirma tu PIN'
+      : 'Ingresa tu PIN'
 
   return (
     <View style={s.container}>
       <Text style={s.title}>Préstalo</Text>
-      <Text style={s.sub}>Ingresa tu PIN</Text>
+      <Text style={s.sub}>{sub}</Text>
       <View style={s.dots}>
         {[0, 1, 2, 3].map((i) => (
           <View key={i} style={[s.dot, pin.length > i && s.dotActive]} />
@@ -63,19 +126,25 @@ export default function Lock() {
           </TouchableOpacity>
         ))}
       </View>
+      {modo === 'verificar' && (
+        <TouchableOpacity onPress={olvidePin} style={{ marginTop: 28 }}>
+          <Text style={s.olvide}>Olvidé mi PIN</Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  title: { fontSize: 34, fontWeight: '800', color: COLORS.gold, marginBottom: 8 },
-  sub: { fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 40 },
+  title: { fontSize: 34, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
+  sub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 40 },
   dots: { flexDirection: 'row', gap: 16, marginBottom: 52 },
-  dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: 'rgba(255,255,255,0.25)' },
-  dotActive: { backgroundColor: COLORS.gold, borderColor: COLORS.gold },
+  dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)' },
+  dotActive: { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', width: 288, gap: 12, justifyContent: 'center' },
-  key: { width: 84, height: 84, borderRadius: 42, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
+  key: { width: 84, height: 84, borderRadius: 42, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
   keyHidden: { backgroundColor: 'transparent' },
   keyText: { fontSize: 26, fontWeight: '500', color: '#fff' },
+  olvide: { color: 'rgba(255,255,255,0.7)', fontSize: 14 },
 })

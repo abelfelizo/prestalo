@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router'
 import { View, ActivityIndicator } from 'react-native'
 import { getUsuarioActual } from '@/api/auth'
 import { getPrestamista, getCartera, getCarterasAccesibles, registrarActividad } from '@/api/prestamistas'
-import { tienePinLocal } from '@/lib/pin'
 import { programarRecordatorioDiario } from '@/lib/notificaciones'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -42,8 +41,8 @@ export default function Index() {
           const cartera = await getCartera(prest.cartera_activa_id)
           if (cartera) setMoneda(cartera.moneda)
         }
-        const tienePin = await tienePinLocal()
-        router.replace(tienePin ? '/(auth)/lock' : '/(auth)/onboarding')
+        // La pantalla de bloqueo crea el PIN si no existe (p.ej. tras cerrar sesión)
+        router.replace('/(auth)/lock')
       } catch {
         router.replace('/(auth)/login')
       }

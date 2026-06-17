@@ -3,7 +3,6 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { signIn, signUp } from '@/api/auth'
-import { getPrestamista } from '@/api/prestamistas'
 import { COLORS, GRADIENTS } from '@/lib/constants'
 
 export default function Login() {
@@ -34,8 +33,8 @@ export default function Login() {
         setPassword('')
         return
       }
-      const prest = await getPrestamista(user.id)
-      router.replace(prest ? '/(auth)/lock' : '/(auth)/onboarding')
+      // Deja que el arranque (index) cargue la sesión y decida lock/onboarding
+      router.replace('/')
     } catch (e: any) {
       const msg: string = e?.message ?? 'No se pudo iniciar sesión'
       Alert.alert(
