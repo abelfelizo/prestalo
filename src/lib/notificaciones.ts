@@ -1,5 +1,16 @@
+import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import { supabase } from '@/lib/supabase'
+
+/** Android requiere un canal para mostrar notificaciones. */
+async function asegurarCanalAndroid() {
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Préstalo',
+      importance: Notifications.AndroidImportance.DEFAULT,
+    }).catch(() => {})
+  }
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -31,6 +42,7 @@ export async function registrarPush(prestamistaId: string): Promise<void> {
 
 export async function programarRecordatorioDiario(): Promise<void> {
   try {
+    await asegurarCanalAndroid()
     const { status } = await Notifications.requestPermissionsAsync()
     if (status !== 'granted') return
     await Notifications.cancelAllScheduledNotificationsAsync()
