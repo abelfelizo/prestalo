@@ -5,6 +5,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { editarCliente, getCliente } from '@/api/clientes'
 import { ejecutar } from '@/lib/outbox'
 import { Boton } from '@/components/Boton'
+import { telefonoValido } from '@/lib/validar'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -56,7 +57,7 @@ export default function NuevoCliente() {
 
   function guardar() {
     if (!nombre.trim()) return Alert.alert('Falta el nombre')
-    if (!telefono.trim()) return Alert.alert('Falta el teléfono')
+    if (!telefonoValido(telefono)) return Alert.alert('Teléfono inválido', 'Debe tener entre 7 y 15 dígitos.')
     mut.mutate()
   }
 

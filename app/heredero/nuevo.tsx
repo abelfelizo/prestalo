@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { useMutation } from '@tanstack/react-query'
 import { crearHeredero } from '@/api/herederos'
 import { hashPin } from '@/lib/pin'
+import { telefonoValido } from '@/lib/validar'
 import { queryClient } from '@/lib/queryClient'
 import { Boton } from '@/components/Boton'
 import { useSession } from '@/store/session'
@@ -39,7 +40,7 @@ export default function NuevoHeredero() {
 
   function guardar() {
     if (!nombre.trim()) return Alert.alert('Falta el nombre')
-    if (!telefono.trim()) return Alert.alert('Falta el teléfono')
+    if (!telefonoValido(telefono)) return Alert.alert('Teléfono inválido', 'Debe tener entre 7 y 15 dígitos.')
     if (clave.length < 4) return Alert.alert('Clave muy corta', 'Mínimo 4 caracteres')
     mut.mutate()
   }

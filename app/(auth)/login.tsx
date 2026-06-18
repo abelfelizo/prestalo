@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { signIn, signUp } from '@/api/auth'
+import { emailValido } from '@/lib/validar'
 import { COLORS, GRADIENTS } from '@/lib/constants'
 
 export default function Login() {
@@ -13,7 +14,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
 
   async function submit() {
-    if (!email.trim() || password.length < 6) {
+    if (!emailValido(email) || password.length < 6) {
       Alert.alert('Datos incompletos', 'Ingresa un email válido y una contraseña de al menos 6 caracteres.')
       return
     }
