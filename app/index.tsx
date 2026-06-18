@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router'
 import { View, ActivityIndicator } from 'react-native'
 import { getUsuarioActual } from '@/api/auth'
 import { getPrestamista, getCartera, getCarterasAccesibles, registrarActividad } from '@/api/prestamistas'
-import { programarRecordatorioDiario } from '@/lib/notificaciones'
+import { programarRecordatorioDiario, registrarPush } from '@/lib/notificaciones'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
@@ -36,6 +36,7 @@ export default function Index() {
         setPrestamista(prest.id)
         registrarActividad(prest.id).catch(() => {})
         programarRecordatorioDiario().catch(() => {})
+        registrarPush(prest.id).catch(() => {})
         setCarteraActiva(prest.cartera_activa_id)
         if (prest.cartera_activa_id) {
           const cartera = await getCartera(prest.cartera_activa_id)

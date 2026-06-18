@@ -40,3 +40,24 @@ eas submit --profile production --platform android
 - [ ] Desactivar/pulir "Confirm email" en Supabase Auth según el flujo deseado.
 - [ ] Completar el email de contacto en `docs/PRIVACIDAD.md` y publicar la política.
 - [ ] (Opcional) Push remoto: requiere dev build + credenciales de notificaciones.
+
+## Push remoto (notificación con la app cerrada)
+
+Infraestructura ya lista:
+- Columna `prestamistas.push_token` (se guarda al abrir la app — sólo con dev build).
+- `src/lib/notificaciones.ts` → `registrarPush()` obtiene y guarda el token.
+- Edge Function `enviar-push` (desplegada): recibe `{ to, title, body }` y la envía por la
+  Expo Push API.
+
+Falta para activarlo (necesita **dev build**, no Expo Go):
+1. `eas init` + `eas build` (el token requiere el `projectId` de EAS).
+2. Para envío automático "app cerrada", programar una llamada diaria a una función que recorra
+   los prestamistas con cobros de hoy y llame a `enviar-push` con su token. Opciones:
+   - pg_cron + pg_net (http_post a la función), o
+   - una segunda Edge Function `push-diario` invocada por un cron de Supabase.
+3. Probar enviando manualmente:
+   ```bash
+   curl -X POST 'https://pphnaasmirbnuilgzfeo.functions.supabase.co/enviar-push' \
+     -H "Authorization: Bearer <anon_o_user_jwt>" -H 'Content-Type: application/json' \
+     -d '{"to":"ExponentPushToken[...]","title":"Préstalo","body":"Tienes cobros hoy"}'
+   ```
