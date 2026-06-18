@@ -838,6 +838,7 @@ export type Database = {
           moneda_principal: string
           nombre: string
           pin_hash: string
+          push_token: string | null
           telefono: string | null
           updated_at: string | null
         }
@@ -849,6 +850,7 @@ export type Database = {
           moneda_principal?: string
           nombre: string
           pin_hash: string
+          push_token?: string | null
           telefono?: string | null
           updated_at?: string | null
         }
@@ -860,6 +862,7 @@ export type Database = {
           moneda_principal?: string
           nombre?: string
           pin_hash?: string
+          push_token?: string | null
           telefono?: string | null
           updated_at?: string | null
         }
@@ -1913,6 +1916,7 @@ export type Database = {
         Returns: Json
       }
       anular_pago: { Args: { p_pago_id: string }; Returns: undefined }
+      es_colaborador: { Args: { cid: string }; Returns: boolean }
       es_mi_cartera: { Args: { cid: string }; Returns: boolean }
       es_mi_prestamo: { Args: { pid: string }; Returns: boolean }
       invitar_colaborador: {
@@ -1920,6 +1924,7 @@ export type Database = {
         Returns: string
       }
       marcar_vencidos: { Args: never; Returns: undefined }
+      soy_dueno_cartera: { Args: { cid: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
