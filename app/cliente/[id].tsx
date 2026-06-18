@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getCliente, eliminarCliente } from '@/api/clientes'
@@ -64,16 +65,19 @@ export default function DetalleCliente() {
           style={s.wa}
           onPress={() => cobrarPorWhatsApp(c.telefono!, c.nombre, 0, moneda)}
         >
-          <Text style={s.waText}>💬 Escribir por WhatsApp</Text>
+          <Feather name="message-circle" size={16} color="#fff" />
+          <Text style={s.waText}>Escribir por WhatsApp</Text>
         </TouchableOpacity>
       )}
 
       <View style={s.editRow}>
         <TouchableOpacity style={s.editBtn} onPress={() => router.push(`/cliente/nuevo?id=${id}`)}>
-          <Text style={s.editText}>✏️ Editar</Text>
+          <Feather name="edit-2" size={15} color={COLORS.text} />
+          <Text style={s.editText}>Editar</Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.delBtn} onPress={eliminar}>
-          <Text style={s.delText}>🗑 Eliminar</Text>
+          <Feather name="trash-2" size={15} color={COLORS.danger} />
+          <Text style={s.delText}>Eliminar</Text>
         </TouchableOpacity>
       </View>
 
@@ -125,12 +129,12 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   rowLabel: { fontSize: 14, color: COLORS.textLight },
   rowVal: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  wa: { backgroundColor: '#25D366', borderRadius: 14, padding: 14, alignItems: 'center', marginTop: 14 },
+  wa: { backgroundColor: '#25D366', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14 },
   waText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   editRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
-  editBtn: { flex: 1, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border },
+  editBtn: { flex: 1, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderColor: COLORS.border },
   editText: { fontWeight: '700', color: COLORS.text, fontSize: 14 },
-  delBtn: { flex: 1, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger },
+  delBtn: { flex: 1, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1.5, borderColor: COLORS.danger },
   delText: { fontWeight: '700', color: COLORS.danger, fontSize: 14 },
   section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1, marginTop: 26, marginBottom: 10 },
   item: { backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, padding: 12, marginBottom: 8 },

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getCarterasAccesibles, setCarteraActiva, invitarColaborador } from '@/api/prestamistas'
@@ -88,7 +89,9 @@ export default function Ajustes() {
         ))
       )}
       <TouchableOpacity style={s.link} onPress={() => router.push('/cartera/nueva')}>
-        <Text style={s.linkText}>＋  Nueva cartera</Text>
+        <Feather name="plus-circle" size={18} color={COLORS.primary} />
+        <Text style={s.linkText}>Nueva cartera</Text>
+        <Feather name="chevron-right" size={18} color={COLORS.textLight} style={s.chev} />
       </TouchableOpacity>
 
       {!!prestamistaId && (
@@ -114,10 +117,14 @@ export default function Ajustes() {
 
       <Text style={s.section}>Cobranza</Text>
       <TouchableOpacity style={s.link} onPress={() => router.push('/reportes')}>
-        <Text style={s.linkText}>📊  Reportes</Text>
+        <Feather name="bar-chart-2" size={18} color={COLORS.primary} />
+        <Text style={s.linkText}>Reportes</Text>
+        <Feather name="chevron-right" size={18} color={COLORS.textLight} style={s.chev} />
       </TouchableOpacity>
       <TouchableOpacity style={s.link} onPress={() => router.push('/config-mora')}>
-        <Text style={s.linkText}>⚙️  Configuración de mora</Text>
+        <Feather name="settings" size={18} color={COLORS.primary} />
+        <Text style={s.linkText}>Configuración de mora</Text>
+        <Feather name="chevron-right" size={18} color={COLORS.textLight} style={s.chev} />
       </TouchableOpacity>
 
       <Text style={s.section}>Herederos</Text>
@@ -137,7 +144,9 @@ export default function Ajustes() {
         </TouchableOpacity>
       ))}
       <TouchableOpacity style={s.link} onPress={() => router.push('/heredero/nuevo')}>
-        <Text style={s.linkText}>＋  Agregar heredero</Text>
+        <Feather name="user-plus" size={18} color={COLORS.primary} />
+        <Text style={s.linkText}>Agregar heredero</Text>
+        <Feather name="chevron-right" size={18} color={COLORS.textLight} style={s.chev} />
       </TouchableOpacity>
 
       <TouchableOpacity style={s.logout} onPress={cerrarSesion}>
@@ -156,8 +165,9 @@ const s = StyleSheet.create({
   carteraNombre: { flex: 1, fontSize: 15, fontWeight: '700', color: COLORS.text },
   carteraMoneda: { fontSize: 13, color: COLORS.textLight },
   activa: { fontSize: 12, color: COLORS.success, fontWeight: '700', marginLeft: 8 },
-  link: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
+  link: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 12 },
   linkText: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  chev: { marginLeft: 'auto' },
   hint: { fontSize: 12, color: COLORS.textLight, marginBottom: 8 },
   shareRow: { flexDirection: 'row', gap: 8 },
   shareInput: { flex: 1, backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
