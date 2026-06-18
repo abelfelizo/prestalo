@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getConfigCartera, guardarConfigCartera } from '@/api/config'
 import { queryClient } from '@/lib/queryClient'
+import { Boton } from '@/components/Boton'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
@@ -113,9 +114,7 @@ export default function ConfigMora() {
         </>
       )}
 
-      <TouchableOpacity style={s.btn} onPress={() => mut.mutate()} disabled={mut.isPending}>
-        {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Guardar</Text>}
-      </TouchableOpacity>
+      <Boton icon="check" label="Guardar" loading={mut.isPending} onPress={() => mut.mutate()} style={{ marginTop: 28 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

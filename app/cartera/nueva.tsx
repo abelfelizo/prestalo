@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { useMutation } from '@tanstack/react-query'
 import { crearCartera, setCarteraActiva } from '@/api/prestamistas'
 import { queryClient } from '@/lib/queryClient'
+import { Boton } from '@/components/Boton'
 import { useSession } from '@/store/session'
 import { COLORS, COLOR_CARTERA, MONEDAS } from '@/lib/constants'
 import type { ColorCartera } from '@/types'
@@ -81,9 +82,7 @@ export default function NuevaCartera() {
         <Text style={[s.optText, activar && s.optTextSel]}>{activar ? '✓ ' : ''}Activar al crear</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={s.btn} onPress={guardar} disabled={mut.isPending}>
-        {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Crear cartera</Text>}
-      </TouchableOpacity>
+      <Boton icon="check" label="Crear cartera" loading={mut.isPending} onPress={guardar} style={{ marginTop: 28 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

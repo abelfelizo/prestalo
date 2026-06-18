@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getReporte } from '@/api/reportes'
 import { getPrestamos } from '@/api/prestamos'
+import { Boton } from '@/components/Boton'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
@@ -66,9 +67,7 @@ export default function Reportes() {
         </View>
       ))}
 
-      <TouchableOpacity style={s.btn} onPress={exportarCSV}>
-        <Text style={s.btnText}>📤 Exportar CSV</Text>
-      </TouchableOpacity>
+      <Boton icon="upload" label="Exportar CSV" onPress={exportarCSV} style={{ marginTop: 24 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Volver</Text></TouchableOpacity>
     </ScrollView>
   )

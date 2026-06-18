@@ -109,6 +109,7 @@ export default function Ajustes() {
               keyboardType="email-address"
             />
             <TouchableOpacity style={s.shareBtn} onPress={compartir}>
+              <Feather name="user-plus" size={15} color="#fff" />
               <Text style={s.shareBtnText}>Invitar</Text>
             </TouchableOpacity>
           </View>
@@ -171,7 +172,7 @@ const s = StyleSheet.create({
   hint: { fontSize: 12, color: COLORS.textLight, marginBottom: 8 },
   shareRow: { flexDirection: 'row', gap: 8 },
   shareInput: { flex: 1, backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
-  shareBtn: { backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 16, justifyContent: 'center' },
+  shareBtn: { backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center' },
   shareBtnText: { color: '#fff', fontWeight: '700' },
   heredero: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
   herederoNombre: { fontSize: 15, fontWeight: '700', color: COLORS.text },

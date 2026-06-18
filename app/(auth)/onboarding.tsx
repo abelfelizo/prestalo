@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { getUsuarioActual } from '@/api/auth'
 import { completarOnboarding } from '@/api/onboarding'
 import { guardarPinLocal, hashPin } from '@/lib/pin'
 import { useSession } from '@/store/session'
-import { COLORS, COLOR_CARTERA, MONEDAS } from '@/lib/constants'
+import { COLORS, COLOR_CARTERA, MONEDAS, GRADIENTS } from '@/lib/constants'
 import type { ColorCartera } from '@/types'
 
 const COLORES = Object.keys(COLOR_CARTERA) as ColorCartera[]
@@ -64,6 +65,7 @@ export default function Onboarding() {
 
   if (fase === 'pin') {
     return (
+      <LinearGradient colors={GRADIENTS.authBg} style={{ flex: 1 }}>
       <View style={s.container}>
         <View style={s.pinBox}>
           <Text style={s.title}>Crea tu PIN</Text>
@@ -75,10 +77,12 @@ export default function Onboarding() {
           </TouchableOpacity>
         </View>
       </View>
+      </LinearGradient>
     )
   }
 
   return (
+    <LinearGradient colors={GRADIENTS.authBg} style={{ flex: 1 }}>
     <ScrollView style={s.container} contentContainerStyle={{ padding: 28, paddingTop: 60 }}>
       <Text style={s.emoji}>💰</Text>
       <Text style={s.title}>Bienvenido a Préstalo</Text>
@@ -110,15 +114,16 @@ export default function Onboarding() {
         <Text style={s.btnText}>Continuar</Text>
       </TouchableOpacity>
     </ScrollView>
+    </LinearGradient>
   )
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary },
+  container: { flex: 1, backgroundColor: 'transparent' },
   emoji: { fontSize: 52, textAlign: 'center', marginBottom: 10 },
-  title: { fontSize: 26, fontWeight: '800', color: COLORS.gold, textAlign: 'center', marginBottom: 6 },
-  sub: { fontSize: 14, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 30 },
-  label: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginTop: 16 },
+  title: { fontSize: 26, fontWeight: '800', color: '#FFFFFF', textAlign: 'center', marginBottom: 6 },
+  sub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginBottom: 30 },
+  label: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginTop: 16 },
   input: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 14, fontSize: 15, color: '#fff', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)' },
   opts: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   opt: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.2)' },

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import {
   tienePinLocal,
@@ -12,7 +13,7 @@ import {
 import { signOut } from '@/api/auth'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
-import { COLORS } from '@/lib/constants'
+import { COLORS, GRADIENTS } from '@/lib/constants'
 
 export default function Lock() {
   const router = useRouter()
@@ -112,6 +113,7 @@ export default function Lock() {
       : 'Ingresa tu PIN'
 
   return (
+    <LinearGradient colors={GRADIENTS.authBg} style={{ flex: 1 }}>
     <View style={s.container}>
       <Text style={s.title}>Préstalo</Text>
       <Text style={s.sub}>{sub}</Text>
@@ -145,11 +147,12 @@ export default function Lock() {
         <Text style={s.olvide}>Cerrar sesión</Text>
       </TouchableOpacity>
     </View>
+    </LinearGradient>
   )
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', padding: 32 },
+  container: { flex: 1, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', padding: 32 },
   title: { fontSize: 34, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
   sub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 40 },
   dots: { flexDirection: 'row', gap: 16, marginBottom: 52 },

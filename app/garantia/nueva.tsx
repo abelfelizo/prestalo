@@ -5,6 +5,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
 import { crearGarantia, editarGarantia, getGarantias } from '@/api/garantias'
 import { subirFotoGarantia, firmarUrl, firmarUrls } from '@/lib/upload'
+import { Boton } from '@/components/Boton'
 import { queryClient } from '@/lib/queryClient'
 import { COLORS } from '@/lib/constants'
 
@@ -93,9 +94,7 @@ export default function NuevaGarantia() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={s.btn} onPress={() => mut.mutate()} disabled={mut.isPending || subiendo}>
-        {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Guardar garantía</Text>}
-      </TouchableOpacity>
+      <Boton icon="check" label={editando ? 'Guardar cambios' : 'Guardar garantía'} loading={mut.isPending} disabled={subiendo} onPress={() => mut.mutate()} style={{ marginTop: 28 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

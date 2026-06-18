@@ -6,6 +6,7 @@ import { getPrestamo, crearPrestamo, marcarRefinanciado } from '@/api/prestamos'
 import { calcularPrestamo, primeraFechaPago } from '@/lib/calculos'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
+import { Boton } from '@/components/Boton'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 import type { Frecuencia, ModeloInteres } from '@/types'
@@ -118,9 +119,7 @@ export default function Refinanciar() {
         </View>
       )}
 
-      <TouchableOpacity style={s.btn} onPress={guardar} disabled={mut.isPending}>
-        {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Refinanciar</Text>}
-      </TouchableOpacity>
+      <Boton icon="refresh-cw" label="Refinanciar" loading={mut.isPending} onPress={guardar} style={{ marginTop: 24 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

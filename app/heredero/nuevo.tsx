@@ -5,6 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { crearHeredero } from '@/api/herederos'
 import { hashPin } from '@/lib/pin'
 import { queryClient } from '@/lib/queryClient'
+import { Boton } from '@/components/Boton'
 import { useSession } from '@/store/session'
 import { COLORS } from '@/lib/constants'
 
@@ -67,9 +68,7 @@ export default function NuevoHeredero() {
       <Text style={s.label}>Días de inactividad para activar</Text>
       <TextInput style={s.input} value={dias} onChangeText={setDias} placeholder="30" placeholderTextColor="#bbb" keyboardType="numeric" />
 
-      <TouchableOpacity style={s.btn} onPress={guardar} disabled={mut.isPending}>
-        {mut.isPending ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Guardar heredero</Text>}
-      </TouchableOpacity>
+      <Boton icon="check" label="Guardar heredero" loading={mut.isPending} onPress={guardar} style={{ marginTop: 28 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

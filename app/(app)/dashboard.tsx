@@ -169,7 +169,7 @@ const s = StyleSheet.create({
   recordar: { color: '#25D366', fontWeight: '700', fontSize: 13 },
   card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 14, padding: 14, marginBottom: 8 },
   cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#ede7f6', alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#E0E7FF', alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 14, fontWeight: '700', color: COLORS.primary },
   clienteNombre: { fontSize: 14, fontWeight: '700', color: COLORS.text },
   clienteSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
