@@ -18,6 +18,7 @@ import { Boton } from '@/components/Boton'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
+import { exigirSuscripcion } from '@/lib/guard'
 import { COLORS } from '@/lib/constants'
 import type { Frecuencia, ModeloInteres } from '@/types'
 
@@ -141,6 +142,7 @@ export default function RegistrarPago() {
 
   function confirmar() {
     if (!desglose) return
+    if (!exigirSuscripcion(router)) return
     if ((tipo === 'parcial' || tipo === 'abono_capital') && (parseFloat(montoIngresado) || 0) <= 0) {
       return Alert.alert('Monto inválido', 'Ingresa el monto a pagar')
     }

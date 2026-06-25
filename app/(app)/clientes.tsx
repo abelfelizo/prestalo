@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getClientes } from '@/api/clientes'
 import { useSession } from '@/store/session'
+import { exigirSuscripcion } from '@/lib/guard'
+import { AvisoSuscripcion } from '@/components/AvisoSuscripcion'
 import { COLORS } from '@/lib/constants'
 
 export default function Clientes() {
@@ -28,11 +30,12 @@ export default function Clientes() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Clientes</Text>
-        <TouchableOpacity style={s.addBtn} onPress={() => router.push('/cliente/nuevo')}>
+        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/cliente/nuevo')}>
           <Feather name="plus" size={15} color="#fff" />
           <Text style={s.addText}>Nuevo</Text>
         </TouchableOpacity>
       </View>
+      <AvisoSuscripcion />
       <TextInput
         style={s.search}
         value={q}

@@ -96,3 +96,44 @@ Falta para activarlo (necesita **dev build / APK**, no Expo Go):
    curl -X POST 'https://pphnaasmirbnuilgzfeo.functions.supabase.co/push-diario' \
      -H "Authorization: Bearer <ANON_KEY>"
    ```
+
+## Monetización — Suscripción (RevenueCat + tiendas)
+
+**Modelo:** prueba gratis de **30 días** (anclada a `prestamistas.created_at`), luego un único
+plan **Kuotas Pro — US$9.99/mes**. Al caducar la prueba sin pagar → **modo solo lectura**
+(puede ver sus datos, pero no crear clientes/préstamos ni registrar cobros hasta suscribirse).
+
+El cobro se hace con **RevenueCat** sobre StoreKit (iOS) y Play Billing (Android). El mismo
+código sirve para ambas tiendas. Apple retiene 30% (15% tras 1 año); Google retiene 15%.
+
+### Código (ya implementado)
+- `src/lib/iap.ts` — init, sincronización, compra y restauración (degrada sin crashear en Expo Go).
+- `src/store/suscripcion.ts` — estado: `cargando | prueba | activa | expirada`.
+- `src/lib/guard.ts` — `exigirSuscripcion(router)`: bloquea la escritura y lleva al paywall.
+- `app/suscripcion.tsx` — pantalla de paywall.
+- `src/components/AvisoSuscripcion.tsx` — banner de días de prueba / solo lectura.
+- Entitlement esperado en RevenueCat: **`pro`**. Producto: **`kuotas_pro_mensual`**.
+
+### Pasos para activarlo
+1. Crea cuenta en https://www.revenuecat.com (gratis hasta US$2.5k/mes de ingresos).
+2. **App Store Connect** (iOS):
+   - Crea la app con bundle `com.kuotas.app`.
+   - Crea una suscripción auto-renovable `kuotas_pro_mensual`, precio US$9.99/mes.
+   - (Opcional) Oferta introductoria de prueba si quieres también trial nativo de tienda.
+3. **Google Play Console** (Android):
+   - Crea la app con package `com.kuotas.app`.
+   - Crea el producto de suscripción `kuotas_pro_mensual`, US$9.99/mes.
+4. En RevenueCat:
+   - Conecta ambas apps, crea el entitlement **`pro`** y enlázale los productos.
+   - Crea una "Offering" actual con el paquete mensual.
+   - Copia las **API keys públicas** (una iOS, una Android).
+5. Pon las keys en `.env`:
+   ```
+   EXPO_PUBLIC_RC_IOS_KEY=appl_xxx
+   EXPO_PUBLIC_RC_ANDROID_KEY=goog_xxx
+   ```
+6. **Build nativo** (`eas build`) — las compras NO funcionan en Expo Go.
+
+> Nota: la prueba de 30 días la gestiona la app por fecha de alta del prestamista, así que el
+> usuario disfruta el periodo gratis **sin** introducir método de pago; al día 31 entra en
+> solo lectura y el paywall le ofrece suscribirse.

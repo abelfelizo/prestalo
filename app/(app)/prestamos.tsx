@@ -6,6 +6,8 @@ import { useRouter } from 'expo-router'
 import { getPrestamos } from '@/api/prestamos'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
+import { exigirSuscripcion } from '@/lib/guard'
+import { AvisoSuscripcion } from '@/components/AvisoSuscripcion'
 import { COLORS } from '@/lib/constants'
 
 export default function Prestamos() {
@@ -30,11 +32,12 @@ export default function Prestamos() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Préstamos</Text>
-        <TouchableOpacity style={s.addBtn} onPress={() => router.push('/prestamo/nuevo')}>
+        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/prestamo/nuevo')}>
           <Feather name="plus" size={15} color="#fff" />
           <Text style={s.addText}>Nuevo</Text>
         </TouchableOpacity>
       </View>
+      <AvisoSuscripcion />
       <TextInput
         style={s.search}
         value={q}

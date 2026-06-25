@@ -9,6 +9,7 @@ import { contarNoLeidas } from '@/api/alertas'
 import { contarPendientes, flush } from '@/lib/outbox'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
+import { AvisoSuscripcion } from '@/components/AvisoSuscripcion'
 import { COLORS, GRADIENTS } from '@/lib/constants'
 
 export default function Dashboard() {
@@ -79,6 +80,8 @@ export default function Dashboard() {
           )}
         </TouchableOpacity>
       </View>
+
+      <AvisoSuscripcion />
 
       {!!pendientes.data && pendientes.data > 0 && (
         <TouchableOpacity

@@ -9,6 +9,7 @@ import { queryClient } from '@/lib/queryClient'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { usePinPrompt } from '@/store/pinPrompt'
+import { exigirSuscripcion } from '@/lib/guard'
 import { COLORS, GRADIENTS } from '@/lib/constants'
 
 const MANUALES = ['capital_nuevo', 'retiro_personal', 'otro']
@@ -45,7 +46,7 @@ export default function Caja() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Caja</Text>
-        <TouchableOpacity style={s.addBtn} onPress={() => router.push('/caja/nuevo')}>
+        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/caja/nuevo')}>
           <Feather name="plus" size={15} color="#fff" />
           <Text style={s.addText}>Movimiento</Text>
         </TouchableOpacity>

@@ -4,7 +4,9 @@ import { View, ActivityIndicator } from 'react-native'
 import { getUsuarioActual } from '@/api/auth'
 import { getPrestamista, getCartera, getCarterasAccesibles, registrarActividad } from '@/api/prestamistas'
 import { programarRecordatorioDiario, registrarPush } from '@/lib/notificaciones'
+import { initIAP, sincronizarSuscripcion } from '@/lib/iap'
 import { useSession } from '@/store/session'
+import { useSuscripcion } from '@/store/suscripcion'
 import { COLORS } from '@/lib/constants'
 
 export default function Index() {
@@ -24,6 +26,8 @@ export default function Index() {
           // ¿Es un cobrador con carteras compartidas? Entra directo.
           const compartidas = await getCarterasAccesibles().catch(() => [])
           if (compartidas.length > 0) {
+            // Los cobradores acceden a través de la cartera del dueño: acceso completo.
+            useSuscripcion.getState().set('activa', 0)
             setCarteraActiva(compartidas[0].id)
             setMoneda(compartidas[0].moneda)
             setDesbloqueado(true)
@@ -34,6 +38,8 @@ export default function Index() {
           return
         }
         setPrestamista(prest.id)
+        await initIAP(prest.id)
+        sincronizarSuscripcion(prest.created_at).catch(() => {})
         registrarActividad(prest.id).catch(() => {})
         programarRecordatorioDiario().catch(() => {})
         registrarPush(prest.id).catch(() => {})
