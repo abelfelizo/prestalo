@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 async function asegurarCanalAndroid() {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'Préstalo',
+      name: 'Kuotas',
       importance: Notifications.AndroidImportance.DEFAULT,
     }).catch(() => {})
   }
@@ -47,7 +47,7 @@ export async function programarRecordatorioDiario(): Promise<void> {
     if (status !== 'granted') return
     await Notifications.cancelAllScheduledNotificationsAsync()
     await Notifications.scheduleNotificationAsync({
-      content: { title: 'Préstalo', body: 'Revisa tus cobros de hoy 💰' },
+      content: { title: 'Kuotas', body: 'Revisa tus cobros de hoy 💰' },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour: 8,

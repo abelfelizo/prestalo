@@ -44,7 +44,7 @@ export async function biometriaDisponible(): Promise<boolean> {
 
 export async function autenticarBiometria(): Promise<boolean> {
   const r = await LocalAuthentication.authenticateAsync({
-    promptMessage: 'Desbloquear Préstalo',
+    promptMessage: 'Desbloquear Kuotas',
     cancelLabel: 'Usar PIN',
   })
   return r.success

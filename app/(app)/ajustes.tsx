@@ -44,7 +44,7 @@ export default function Ajustes() {
     try {
       const r = await invitarColaborador(carteraActivaId, emailColab.trim())
       if (r === 'no_existe') {
-        Alert.alert('No encontrado', 'Ese email no tiene cuenta en Préstalo. Pídele que se registre primero.')
+        Alert.alert('No encontrado', 'Ese email no tiene cuenta en Kuotas. Pídele que se registre primero.')
       } else {
         setEmailColab('')
         Alert.alert('Listo', 'La cartera fue compartida con ese cobrador.')
@@ -97,7 +97,7 @@ export default function Ajustes() {
       {!!prestamistaId && (
         <>
           <Text style={s.section}>Compartir cartera activa</Text>
-          <Text style={s.hint}>Invita a un cobrador (debe tener cuenta en Préstalo).</Text>
+          <Text style={s.hint}>Invita a un cobrador (debe tener cuenta en Kuotas).</Text>
           <View style={s.shareRow}>
             <TextInput
               style={s.shareInput}

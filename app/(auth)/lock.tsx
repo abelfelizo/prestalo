@@ -115,7 +115,7 @@ export default function Lock() {
   return (
     <LinearGradient colors={GRADIENTS.authBg} style={{ flex: 1 }}>
     <View style={s.container}>
-      <Text style={s.title}>Préstalo</Text>
+      <Text style={s.title}>Kuotas</Text>
       <Text style={s.sub}>{sub}</Text>
       <View style={s.dots}>
         {[0, 1, 2, 3].map((i) => (

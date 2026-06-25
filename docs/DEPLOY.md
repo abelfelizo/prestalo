@@ -1,4 +1,4 @@
-# Despliegue de Préstalo (EAS Build)
+# Despliegue de Kuotas (EAS Build)
 
 La app corre hoy en **Expo Go** (desarrollo). Para distribuirla se usa **EAS Build**.
 Estos pasos los ejecuta el dueño de la cuenta Expo.
@@ -80,7 +80,7 @@ Falta para activarlo (necesita **dev build / APK**, no Expo Go):
 2. Activar el envío automático diario con pg_cron + pg_net (pega tu ANON KEY):
    ```sql
    create extension if not exists pg_net;
-   select cron.schedule('prestalo-push-diario', '0 13 * * *', $$
+   select cron.schedule('kuotas-push-diario', '0 13 * * *', $$
      select net.http_post(
        url := 'https://pphnaasmirbnuilgzfeo.functions.supabase.co/push-diario',
        headers := jsonb_build_object(

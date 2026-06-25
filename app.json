@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Préstalo",
-    "slug": "prestalo",
+    "name": "Kuotas",
+    "slug": "kuotas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,24 +13,24 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.prestalo.app"
+      "bundleIdentifier": "com.kuotas.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#1a1a2e"
       },
-      "package": "com.prestalo.app"
+      "package": "com.kuotas.app"
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
       [
         "expo-image-picker",
-        { "photosPermission": "Préstalo necesita acceso a tus fotos para adjuntar garantías." }
+        { "photosPermission": "Kuotas necesita acceso a tus fotos para adjuntar garantías." }
       ],
       "expo-notifications"
     ],
-    "scheme": "prestalo"
+    "scheme": "kuotas"
   }
 }

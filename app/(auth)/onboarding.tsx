@@ -85,7 +85,7 @@ export default function Onboarding() {
     <LinearGradient colors={GRADIENTS.authBg} style={{ flex: 1 }}>
     <ScrollView style={s.container} contentContainerStyle={{ padding: 28, paddingTop: 60 }}>
       <Text style={s.emoji}>💰</Text>
-      <Text style={s.title}>Bienvenido a Préstalo</Text>
+      <Text style={s.title}>Bienvenido a Kuotas</Text>
       <Text style={s.sub}>Configura tu perfil</Text>
 
       <Text style={s.label}>Tu nombre</Text>

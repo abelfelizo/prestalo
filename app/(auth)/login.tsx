@@ -51,7 +51,7 @@ export default function Login() {
     <LinearGradient colors={GRADIENTS.authBg} style={{ flex: 1 }}>
     <KeyboardAvoidingView style={s.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Text style={s.emoji}>💰</Text>
-      <Text style={s.title}>Préstalo</Text>
+      <Text style={s.title}>Kuotas</Text>
       <Text style={s.sub}>{modo === 'entrar' ? 'Inicia sesión' : 'Crea tu cuenta'}</Text>
 
       <TextInput

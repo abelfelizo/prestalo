@@ -71,7 +71,7 @@ export default function Dashboard() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refrescar} />}
     >
       <View style={s.titleRow}>
-        <Text style={s.title}>Préstalo</Text>
+        <Text style={s.title}>Kuotas</Text>
         <TouchableOpacity onPress={() => router.push('/alertas')} style={s.bell}>
           <Feather name="bell" size={22} color={COLORS.text} />
           {!!noLeidas.data && (

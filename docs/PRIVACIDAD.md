@@ -1,8 +1,8 @@
-# Política de Privacidad — Préstalo
+# Política de Privacidad — Kuotas
 
 _Última actualización: 2026-06-16_
 
-Préstalo ("la app") es una herramienta para que prestamistas gestionen sus carteras de préstamos.
+Kuotas ("la app") es una herramienta para que prestamistas gestionen sus carteras de préstamos.
 
 ## Qué datos recopilamos
 - **Cuenta**: correo electrónico (para autenticación).
