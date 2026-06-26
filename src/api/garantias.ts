@@ -6,6 +6,7 @@ export async function getGarantias(prestamoId: string): Promise<Garantia[]> {
     .from('garantias')
     .select('*')
     .eq('prestamo_id', prestamoId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
   if (error) throw error
   return data ?? []
@@ -22,8 +23,12 @@ export async function editarGarantia(id: string, patch: Partial<Inserts<'garanti
   if (error) throw error
 }
 
+/** Borrado lógico de la garantía (recuperable). */
 export async function eliminarGarantia(id: string): Promise<void> {
-  const { error } = await supabase.from('garantias').delete().eq('id', id)
+  const { error } = await supabase
+    .from('garantias')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
   if (error) throw error
 }
 

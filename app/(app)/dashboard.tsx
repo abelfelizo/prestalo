@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
 import { getProximosCobros } from '@/api/prestamos'
 import { contarNoLeidas } from '@/api/alertas'
-import { contarPendientes, flush } from '@/lib/outbox'
+import { contarPendientes, flush, contarFallidas, reintentarFallidas } from '@/lib/outbox'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { AvisoSuscripcion } from '@/components/AvisoSuscripcion'
@@ -27,6 +27,12 @@ export default function Dashboard() {
   const pendientes = useQuery({
     queryKey: ['outbox-count'],
     queryFn: contarPendientes,
+    refetchInterval: 8000,
+  })
+
+  const fallidas = useQuery({
+    queryKey: ['outbox-fallidas'],
+    queryFn: contarFallidas,
     refetchInterval: 8000,
   })
 
@@ -89,6 +95,19 @@ export default function Dashboard() {
           onPress={() => flush().then(() => { pendientes.refetch(); cobros.refetch(); metricas.refetch() })}
         >
           <Text style={s.pendText}>↻ {pendientes.data} pendiente(s) de sincronizar — toca para reintentar</Text>
+        </TouchableOpacity>
+      )}
+
+      {!!fallidas.data && fallidas.data > 0 && (
+        <TouchableOpacity
+          style={s.fail}
+          onPress={() =>
+            reintentarFallidas()
+              .then(() => flush())
+              .then(() => { fallidas.refetch(); pendientes.refetch(); cobros.refetch(); metricas.refetch() })
+          }
+        >
+          <Text style={s.failText}>⚠️ {fallidas.data} operación(es) no se guardaron — toca para reintentar</Text>
         </TouchableOpacity>
       )}
 
@@ -157,6 +176,8 @@ const s = StyleSheet.create({
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
   pend: { backgroundColor: '#fff4e5', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: COLORS.warning },
   pendText: { color: COLORS.warning, fontWeight: '700', fontSize: 13, textAlign: 'center' },
+  fail: { backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: COLORS.danger },
+  failText: { color: COLORS.danger, fontWeight: '700', fontSize: 13, textAlign: 'center' },
   hero: { borderRadius: 22, padding: 24, marginBottom: 14, alignItems: 'center', overflow: 'hidden' },
   heroLabel: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginBottom: 6, fontWeight: '600' },
   heroMonto: { fontSize: 38, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },

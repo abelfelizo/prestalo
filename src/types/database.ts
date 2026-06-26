@@ -66,6 +66,7 @@ export type Database = {
           cartera_id: string
           categoria: string
           created_at: string | null
+          deleted_at: string | null
           descripcion: string | null
           fecha: string
           id: string
@@ -77,6 +78,7 @@ export type Database = {
           cartera_id: string
           categoria?: string
           created_at?: string | null
+          deleted_at?: string | null
           descripcion?: string | null
           fecha: string
           id?: string
@@ -88,6 +90,7 @@ export type Database = {
           cartera_id?: string
           categoria?: string
           created_at?: string | null
+          deleted_at?: string | null
           descripcion?: string | null
           fecha?: string
           id?: string
@@ -299,6 +302,7 @@ export type Database = {
       garantias: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           descripcion: string | null
           estado: string
           fecha_devuelta: string | null
@@ -311,6 +315,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           descripcion?: string | null
           estado?: string
           fecha_devuelta?: string | null
@@ -323,6 +328,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           descripcion?: string | null
           estado?: string
           fecha_devuelta?: string | null

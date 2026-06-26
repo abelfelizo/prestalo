@@ -6,6 +6,7 @@ import { registrarPago } from '@/api/pagos'
 import { crearMovimiento } from '@/api/caja'
 
 const KEY = 'prestalo-outbox'
+const KEY_FALLIDAS = 'prestalo-outbox-fallidas' // dead-letter: ops que fallaron por datos, no por red
 
 export type OutboxOp = 'crearCliente' | 'crearPrestamo' | 'registrarPago' | 'crearMovimiento'
 
@@ -33,6 +34,41 @@ async function escribir(ops: PendingOp[]): Promise<void> {
 
 export async function contarPendientes(): Promise<number> {
   return (await leer()).length
+}
+
+async function leerFallidas(): Promise<PendingOp[]> {
+  const raw = await AsyncStorage.getItem(KEY_FALLIDAS)
+  return raw ? (JSON.parse(raw) as PendingOp[]) : []
+}
+
+/** Mueve una op a la cola de fallidas (dead-letter): NUNCA se descarta sin dejar rastro. */
+async function aFallidas(o: PendingOp): Promise<void> {
+  const f = await leerFallidas()
+  f.push(o)
+  await AsyncStorage.setItem(KEY_FALLIDAS, JSON.stringify(f))
+}
+
+/** Operaciones que fallaron por datos (no por red). Para mostrarlas/reintentarlas a mano. */
+export async function contarFallidas(): Promise<number> {
+  return (await leerFallidas()).length
+}
+
+export async function getFallidas(): Promise<PendingOp[]> {
+  return leerFallidas()
+}
+
+export async function limpiarFallidas(): Promise<void> {
+  await AsyncStorage.removeItem(KEY_FALLIDAS)
+}
+
+/** Devuelve las fallidas a la cola pendiente para volver a intentarlas. */
+export async function reintentarFallidas(): Promise<number> {
+  const f = await leerFallidas()
+  if (f.length === 0) return 0
+  const ops = await leer()
+  await escribir([...ops, ...f])
+  await AsyncStorage.removeItem(KEY_FALLIDAS)
+  return f.length
 }
 
 async function encolar(op: OutboxOp, args: unknown): Promise<void> {
@@ -81,8 +117,8 @@ export async function flush(): Promise<number> {
       try {
         await REGISTRY[o.op](o.args)
       } catch (e) {
-        if (esErrorDeRed(e)) restantes.push(o) // sigue pendiente
-        // si no es de red (datos inválidos), se descarta para no bloquear la cola
+        if (esErrorDeRed(e)) restantes.push(o) // sigue pendiente, se reintenta
+        else await aFallidas(o) // error de datos: a dead-letter (NO se pierde) para no bloquear la cola
       }
     }
     await escribir(restantes)

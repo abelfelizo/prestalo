@@ -6,6 +6,7 @@ export async function getMovimientos(carteraId: string): Promise<Caja[]> {
     .from('caja')
     .select('*')
     .eq('cartera_id', carteraId)
+    .is('deleted_at', null)
     .order('fecha', { ascending: false })
     .order('created_at', { ascending: false })
   if (error) throw error
@@ -19,7 +20,11 @@ export async function getMovimiento(id: string): Promise<Caja | null> {
 }
 
 export async function getBalanceCaja(carteraId: string): Promise<number> {
-  const { data, error } = await supabase.from('caja').select('tipo, monto').eq('cartera_id', carteraId)
+  const { data, error } = await supabase
+    .from('caja')
+    .select('tipo, monto')
+    .eq('cartera_id', carteraId)
+    .is('deleted_at', null)
   if (error) throw error
   return (data ?? []).reduce(
     (s, m) => s + (m.tipo === 'entrada' ? Number(m.monto) : -Number(m.monto)),
@@ -38,7 +43,11 @@ export async function editarMovimiento(id: string, patch: Partial<Inserts<'caja'
   if (error) throw error
 }
 
+/** Borrado lógico del movimiento (recuperable). */
 export async function eliminarMovimiento(id: string): Promise<void> {
-  const { error } = await supabase.from('caja').delete().eq('id', id)
+  const { error } = await supabase
+    .from('caja')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
   if (error) throw error
 }

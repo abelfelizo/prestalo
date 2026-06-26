@@ -6,6 +6,7 @@ import { queryClient } from '@/lib/queryClient'
 import { asyncStoragePersister } from '@/lib/persister'
 import { flush, iniciarAutoSync } from '@/lib/outbox'
 import { PinPromptModal } from '@/components/PinPromptModal'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 export default function RootLayout() {
   useEffect(() => {
@@ -17,13 +18,15 @@ export default function RootLayout() {
   }, [])
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister: asyncStoragePersister, maxAge: 1000 * 60 * 60 * 24 }}
-    >
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false }} />
-      <PinPromptModal />
-    </PersistQueryClientProvider>
+    <ErrorBoundary>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: asyncStoragePersister, maxAge: 1000 * 60 * 60 * 24 }}
+      >
+        <StatusBar style="light" />
+        <Stack screenOptions={{ headerShown: false }} />
+        <PinPromptModal />
+      </PersistQueryClientProvider>
+    </ErrorBoundary>
   )
 }
