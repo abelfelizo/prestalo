@@ -26,7 +26,8 @@ No vendemos ni compartimos tus datos con terceros. Los mensajes a clientes se en
 
 ## Tus derechos
 Puedes editar o eliminar tus clientes, préstamos y datos desde la app, y cerrar tu cuenta.
-Para eliminar por completo tu cuenta y datos, escríbenos.
+Puedes **eliminar permanentemente tu cuenta y todos tus datos** directamente desde la app, en
+**Ajustes → Zona de peligro → Eliminar mi cuenta**. La eliminación es inmediata e irreversible.
 
 ## Datos sensibles
 Las fotos de garantías (cédulas, tarjetas) son datos sensibles. Recomendamos subir solo lo

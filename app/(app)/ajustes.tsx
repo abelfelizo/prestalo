@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getCarterasAccesibles, setCarteraActiva, invitarColaborador } from '@/api/prestamistas'
 import { getHerederos, eliminarHeredero } from '@/api/herederos'
-import { signOut } from '@/api/auth'
+import { signOut, eliminarCuenta } from '@/api/auth'
 import { limpiarPinLocal } from '@/lib/pin'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
@@ -52,6 +52,32 @@ export default function Ajustes() {
     } catch (e: any) {
       Alert.alert('Error', e.message ?? 'No se pudo compartir')
     }
+  }
+
+  async function borrarCuenta() {
+    Alert.alert(
+      'Eliminar cuenta',
+      'Esto borrará PERMANENTEMENTE tu cuenta y todos tus datos (clientes, préstamos, pagos y caja). Esta acción NO se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar todo',
+          style: 'destructive',
+          onPress: () =>
+            pedirPin(async () => {
+              try {
+                await eliminarCuenta()
+                await limpiarPinLocal()
+                reset()
+                queryClient.clear()
+                router.replace('/(auth)/login')
+              } catch (e: any) {
+                Alert.alert('Error', e.message ?? 'No se pudo eliminar la cuenta')
+              }
+            }, 'PIN para eliminar tu cuenta'),
+        },
+      ],
+    )
   }
 
   async function cerrarSesion() {
@@ -153,6 +179,13 @@ export default function Ajustes() {
       <TouchableOpacity style={s.logout} onPress={cerrarSesion}>
         <Text style={s.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
+
+      <Text style={s.section}>Zona de peligro</Text>
+      <TouchableOpacity style={s.danger} onPress={borrarCuenta}>
+        <Feather name="trash-2" size={16} color={COLORS.danger} />
+        <Text style={s.dangerText}>Eliminar mi cuenta y todos mis datos</Text>
+      </TouchableOpacity>
+      <Text style={s.hint}>Borra permanentemente tu cuenta. No se puede deshacer.</Text>
     </ScrollView>
   )
 }
@@ -179,4 +212,6 @@ const s = StyleSheet.create({
   herederoSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
   logout: { marginTop: 32, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger },
   logoutText: { color: COLORS.danger, fontWeight: '700', fontSize: 15 },
+  danger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#FEF2F2', borderRadius: 14, padding: 16, borderWidth: 1.5, borderColor: COLORS.danger },
+  dangerText: { color: COLORS.danger, fontWeight: '700', fontSize: 14 },
 })

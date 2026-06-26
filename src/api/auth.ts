@@ -27,3 +27,13 @@ export async function getUsuarioActual(): Promise<User | null> {
   const { data } = await supabase.auth.getSession()
   return data.session?.user ?? null
 }
+
+/**
+ * Borra permanentemente la cuenta y TODOS sus datos (requisito de Apple/Google).
+ * Llama a la edge function `eliminar-cuenta`, que borra los datos y el usuario de Auth.
+ */
+export async function eliminarCuenta(): Promise<void> {
+  const { error } = await supabase.functions.invoke('eliminar-cuenta', { method: 'POST' })
+  if (error) throw error
+  await supabase.auth.signOut().catch(() => {})
+}
