@@ -1,7 +1,7 @@
 import { Component, type ReactNode } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS, font, radius } from '@/theme'
 
 interface Props { children: ReactNode }
 interface State { error: Error | null }
@@ -39,8 +39,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
 const s = StyleSheet.create({
   c: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, backgroundColor: COLORS.bg, gap: 12 },
-  title: { fontSize: 20, fontWeight: '800', color: COLORS.text, marginTop: 8 },
-  sub: { fontSize: 14, color: COLORS.textLight, textAlign: 'center', lineHeight: 20 },
-  btn: { marginTop: 12, backgroundColor: COLORS.primary, paddingHorizontal: 28, paddingVertical: 13, borderRadius: 14 },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  title: { fontFamily: font.display, fontSize: 20, color: COLORS.ink, marginTop: 8 },
+  sub: { fontFamily: font.body, fontSize: 14, color: COLORS.muted, textAlign: 'center', lineHeight: 20 },
+  btn: { marginTop: 12, backgroundColor: COLORS.primary, paddingHorizontal: 28, paddingVertical: 13, borderRadius: radius.md },
+  btnText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 15 },
 })

@@ -1,7 +1,7 @@
 import { View, Image, StyleSheet } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
 import { firmarUrls } from '@/lib/upload'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS } from '@/theme'
 
 /** Muestra miniaturas de fotos guardadas como rutas del bucket privado (genera URLs firmadas). */
 export function FotosFirmadas({ paths }: { paths: string[] }) {

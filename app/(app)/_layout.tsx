@@ -2,12 +2,12 @@ import { Tabs } from 'expo-router'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { StyleSheet, Platform } from 'react-native'
-import { COLORS } from '@/lib/constants'
+import { color, font, radius, shadowCard } from '@/theme'
 
 type IconName = keyof typeof Feather.glyphMap
 
 function tabIcon(name: IconName) {
-  return ({ color, size }: { color: string; size: number }) => <Feather name={name} size={size - 2} color={color} />
+  return ({ color: c, size }: { color: string; size: number }) => <Feather name={name} size={size - 2} color={c} />
 }
 
 export default function AppLayout() {
@@ -15,31 +15,35 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: '#94A3B8',
+        tabBarActiveTintColor: color.primary,
+        tabBarInactiveTintColor: color.faint,
         tabBarStyle: {
           position: 'absolute',
+          left: 16,
+          right: 16,
+          bottom: Platform.OS === 'ios' ? 28 : 14,
+          height: 64,
+          borderRadius: radius.xxl,
           borderTopWidth: 0,
-          elevation: 0,
           backgroundColor: 'transparent',
-          height: Platform.OS === 'ios' ? 84 : 68,
           paddingTop: 8,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+          paddingBottom: 8,
+          ...shadowCard,
         },
         tabBarBackground: () => (
           <BlurView
             intensity={40}
             tint="light"
-            style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.72)', borderTopWidth: 0.5, borderTopColor: 'rgba(148,163,184,0.25)' }]}
+            style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.82)', borderRadius: radius.xxl, borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.6)', overflow: 'hidden' }]}
           />
         ),
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '700' },
+        tabBarLabelStyle: { fontFamily: font.bodyBold, fontSize: 9 },
       }}
     >
       <Tabs.Screen name="dashboard" options={{ tabBarLabel: 'Inicio', tabBarIcon: tabIcon('home') }} />
       <Tabs.Screen name="clientes" options={{ tabBarLabel: 'Clientes', tabBarIcon: tabIcon('users') }} />
-      <Tabs.Screen name="prestamos" options={{ tabBarLabel: 'Préstamos', tabBarIcon: tabIcon('dollar-sign') }} />
-      <Tabs.Screen name="caja" options={{ tabBarLabel: 'Caja', tabBarIcon: tabIcon('credit-card') }} />
+      <Tabs.Screen name="prestamos" options={{ tabBarLabel: 'Préstamos', tabBarIcon: tabIcon('credit-card') }} />
+      <Tabs.Screen name="caja" options={{ tabBarLabel: 'Caja', tabBarIcon: tabIcon('dollar-sign') }} />
       <Tabs.Screen name="ajustes" options={{ tabBarLabel: 'Ajustes', tabBarIcon: tabIcon('settings') }} />
     </Tabs>
   )

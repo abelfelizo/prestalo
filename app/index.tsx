@@ -7,7 +7,7 @@ import { programarRecordatorioDiario, registrarPush } from '@/lib/notificaciones
 import { initIAP, sincronizarSuscripcion } from '@/lib/iap'
 import { useSession } from '@/store/session'
 import { useSuscripcion } from '@/store/suscripcion'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS } from '@/theme'
 
 export default function Index() {
   const router = useRouter()
@@ -57,8 +57,8 @@ export default function Index() {
   }, [])
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primary }}>
-      <ActivityIndicator color={COLORS.gold} size="large" />
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.primaryDeep }}>
+      <ActivityIndicator color={COLORS.cyanLight} size="large" />
     </View>
   )
 }

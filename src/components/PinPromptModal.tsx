@@ -3,7 +3,7 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { verificarPinLocal } from '@/lib/pin'
 import { usePinPrompt } from '@/store/pinPrompt'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS, font, radius } from '@/theme'
 
 const TECLADO = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫']
 
@@ -74,15 +74,15 @@ export function PinPromptModal() {
 
 const s = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.6)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  card: { backgroundColor: '#fff', borderRadius: 24, padding: 24, alignItems: 'center', width: '100%', maxWidth: 340 },
-  titulo: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginTop: 10, textAlign: 'center' },
-  error: { color: COLORS.danger, fontWeight: '700', marginTop: 8, fontSize: 13 },
+  card: { backgroundColor: '#fff', borderRadius: radius.card, padding: 24, alignItems: 'center', width: '100%', maxWidth: 340 },
+  titulo: { fontFamily: font.displaySemi, fontSize: 16, color: COLORS.ink, marginTop: 10, textAlign: 'center' },
+  error: { fontFamily: font.bodyBold, color: COLORS.danger, marginTop: 8, fontSize: 13 },
   dots: { flexDirection: 'row', gap: 14, marginVertical: 20 },
-  dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: COLORS.border },
+  dot: { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: COLORS.line },
   dotOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   grid: { flexDirection: 'row', flexWrap: 'wrap', width: 252, gap: 10, justifyContent: 'center' },
-  key: { width: 72, height: 72, borderRadius: 36, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
+  key: { width: 72, height: 72, borderRadius: 36, backgroundColor: COLORS.bg, alignItems: 'center', justifyContent: 'center' },
   keyHidden: { backgroundColor: 'transparent' },
-  keyText: { fontSize: 24, fontWeight: '600', color: COLORS.text },
-  cancel: { color: COLORS.textLight, marginTop: 18, fontSize: 14 },
+  keyText: { fontFamily: font.displaySemi, fontSize: 24, color: COLORS.ink },
+  cancel: { fontFamily: font.bodySemi, color: COLORS.muted, marginTop: 18, fontSize: 14 },
 })
