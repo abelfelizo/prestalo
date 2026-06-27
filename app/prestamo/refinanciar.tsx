@@ -3,8 +3,9 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert,
 import { errMsg } from '@/lib/errores'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { getPrestamo, crearPrestamo, marcarRefinanciado } from '@/api/prestamos'
+import { getPrestamo, refinanciarPrestamo } from '@/api/prestamos'
 import { calcularPrestamo, primeraFechaPago } from '@/lib/calculos'
+import { nuevoOpId } from '@/lib/opid'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
 import { Boton } from '@/components/Boton'
@@ -45,21 +46,18 @@ export default function Refinanciar() {
   const mut = useMutation({
     mutationFn: async () => {
       const fechaInicio = new Date().toISOString().slice(0, 10)
-      await crearPrestamo({
-        cartera_id: viejo!.cartera_id,
-        cliente_id: viejo!.cliente_id,
-        prestamo_padre_id: viejo!.id,
-        monto_capital: cap,
-        saldo_pendiente: resumen.montoTotal,
-        tasa_interes: t,
-        modelo_interes: modelo,
-        frecuencia_cobro: frecuencia,
-        num_cuotas: n,
-        fecha_inicio: fechaInicio,
-        fecha_proximo_pago: primeraFechaPago(fechaInicio, frecuencia),
-        estado: 'activo',
+      await refinanciarPrestamo({
+        viejoId: viejo!.id,
+        capital: cap,
+        tasa: t,
+        modelo,
+        frecuencia,
+        numCuotas: n,
+        saldoPendiente: resumen.montoTotal,
+        fechaInicio,
+        fechaProximo: primeraFechaPago(fechaInicio, frecuencia),
+        clientOpId: nuevoOpId(),
       })
-      await marcarRefinanciado(viejo!.id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prestamos', carteraId] })

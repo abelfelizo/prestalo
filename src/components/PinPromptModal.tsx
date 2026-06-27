@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { verificarPinLocal } from '@/lib/pin'
+import { verificarPinLocal, pinBloqueadoMs, registrarFalloPin } from '@/lib/pin'
 import { usePinPrompt } from '@/store/pinPrompt'
 import { color as COLORS, font, radius } from '@/theme'
 
@@ -23,14 +23,28 @@ export function PinPromptModal() {
     setPin(nuevo)
     setError(false)
     if (nuevo.length === 4) {
+      if ((await pinBloqueadoMs()) > 0) {
+        setPin('')
+        cerrar()
+        reset()
+        Alert.alert('Demasiados intentos', 'Espera unos minutos antes de volver a intentarlo.')
+        return
+      }
       if (await verificarPinLocal(nuevo)) {
         const cb = onSuccess
         cerrar()
         reset()
         cb?.()
       } else {
-        setError(true)
         setPin('')
+        const r = await registrarFalloPin()
+        if (r.bloqueado) {
+          cerrar()
+          reset()
+          Alert.alert('Demasiados intentos', 'Espera unos minutos antes de volver a intentarlo.')
+        } else {
+          setError(true)
+        }
       }
     }
   }

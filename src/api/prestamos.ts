@@ -23,10 +23,37 @@ export async function otorgarProrroga(prestamoId: string, nuevaFechaProximo: str
   if (error) throw error
 }
 
-/** Marca un préstamo como refinanciado (su saldo pasa a un préstamo nuevo). */
-export async function marcarRefinanciado(prestamoId: string): Promise<void> {
-  const { error } = await supabase.from('prestamos').update({ estado: 'refinanciado' }).eq('id', prestamoId)
+/**
+ * Refinancia un préstamo de forma ATÓMICA: crea el préstamo nuevo y cierra el viejo
+ * en una sola transacción del servidor (RPC). Evita el doble conteo si algo falla a mitad.
+ * Idempotente vía client_op_id. Devuelve el id del préstamo nuevo.
+ */
+export async function refinanciarPrestamo(args: {
+  viejoId: string
+  capital: number
+  tasa: number
+  modelo: string
+  frecuencia: string
+  numCuotas: number
+  saldoPendiente: number
+  fechaInicio: string
+  fechaProximo: string
+  clientOpId: string
+}): Promise<string> {
+  const { data, error } = await (supabase.rpc as any)('refinanciar_prestamo', {
+    p_viejo: args.viejoId,
+    p_capital: args.capital,
+    p_tasa: args.tasa,
+    p_modelo: args.modelo,
+    p_frecuencia: args.frecuencia,
+    p_num_cuotas: args.numCuotas,
+    p_saldo_pendiente: args.saldoPendiente,
+    p_fecha_inicio: args.fechaInicio,
+    p_fecha_proximo: args.fechaProximo,
+    p_client_op_id: args.clientOpId,
+  })
   if (error) throw error
+  return data as string
 }
 
 /** Edita campos de un préstamo (usar solo si no tiene pagos registrados). */
@@ -101,7 +128,21 @@ export async function getProximosCobros(carteraId: string, dias = 7): Promise<Pr
  * `saldo_pendiente` debe venir = total a cobrar (capital + intereses).
  */
 export async function crearPrestamo(input: Inserts<'prestamos'>): Promise<Prestamo> {
-  const { data, error } = await supabase.from('prestamos').insert(input).select().single()
+  // Idempotente: un reintento con el mismo client_op_id no crea un préstamo duplicado.
+  const { data, error } = await supabase
+    .from('prestamos')
+    .upsert(input, { onConflict: 'client_op_id', ignoreDuplicates: true })
+    .select()
   if (error) throw error
-  return data
+  if (data && data.length) return data[0]
+  if (input.client_op_id) {
+    const { data: existente, error: e2 } = await supabase
+      .from('prestamos')
+      .select('*')
+      .eq('client_op_id', input.client_op_id)
+      .maybeSingle()
+    if (e2) throw e2
+    if (existente) return existente
+  }
+  throw new Error('No se pudo crear el préstamo')
 }

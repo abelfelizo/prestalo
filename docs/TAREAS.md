@@ -8,14 +8,14 @@ Prioridad: 🔴 bloqueante antes de cobrar · 🟠 importante · 🟢 mejora/nov
 
 ## 🔴 Bloqueantes (antes de cobrar a un cliente real)
 
-- [ ] **Idempotencia de escrituras** — añadir `client_op_id` único a pagos/préstamos/caja e
-      `insert ... on conflict do nothing`. Evita doble cobro/doble préstamo en reintentos. **[Claude]**
-- [ ] **Saldos calculados en el servidor** — que el trigger `actualizar_tras_pago` calcule el saldo
-      desde el valor actual en BD, no desde `saldo_despues` enviado por el cliente. **[Claude]**
-- [ ] **Refinanciamiento atómico** — unificar `crearPrestamo` + `marcarRefinanciado` en una sola RPC
-      transaccional. **[Claude]**
-- [ ] **Endurecer el PIN** — pedir contraseña de la cuenta para "Olvidé mi PIN", límite de intentos
-      con bloqueo temporal, y sal en el hash. **[Claude]**
+- [x] **Idempotencia de escrituras** — `client_op_id` único en pagos/préstamos/caja + upsert con
+      `ignoreDuplicates`. Reintentos ya no duplican. _(migración 0008, api + screens)_ **[Claude] ✓**
+- [x] **Saldos calculados en el servidor** — `actualizar_tras_pago` recalcula el saldo desde la BD,
+      ya no confía en `saldo_despues` del cliente. _(migración 0009)_ **[Claude] ✓**
+- [x] **Refinanciamiento atómico** — RPC `refinanciar_prestamo` (una transacción, idempotente,
+      SECURITY INVOKER). _(migración 0010)_ **[Claude] ✓**
+- [x] **Endurecer el PIN** — contraseña de la cuenta para "Olvidé mi PIN", bloqueo tras 5 intentos
+      (5 min) en lock y en acciones sensibles, y sal por dispositivo en el hash. **[Claude] ✓**
 - [ ] **Separar Kuotas a su propio proyecto Supabase** (o activar RLS en todas las tablas `libro_*`
       del proyecto compartido). **[Tú]** (puedo guiarte / preparar migraciones)
 - [ ] **Rotar la anon key** y moverla a GitHub Secrets (sacarla de `eas.json` y los workflows). **[Tú]**

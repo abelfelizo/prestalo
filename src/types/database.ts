@@ -73,9 +73,11 @@ export type Database = {
           monto: number
           referencia_id: string | null
           tipo: string
+          client_op_id: string | null
         }
         Insert: {
           cartera_id: string
+          client_op_id?: string | null
           categoria?: string
           created_at?: string | null
           deleted_at?: string | null
@@ -787,9 +789,11 @@ export type Database = {
           saldo_antes: number
           saldo_despues: number
           tipo_pago: string
+          client_op_id: string | null
         }
         Insert: {
           cliente_id: string
+          client_op_id?: string | null
           created_at?: string | null
           dias_atraso_al_pagar?: number
           fecha_pago: string
@@ -897,10 +901,12 @@ export type Database = {
           total_intereses_generados: number
           total_mora_generada: number
           updated_at: string | null
+          client_op_id: string | null
         }
         Insert: {
           cartera_id: string
           cliente_id: string
+          client_op_id?: string | null
           created_at?: string | null
           cuotas_pagadas?: number
           deleted_at?: string | null

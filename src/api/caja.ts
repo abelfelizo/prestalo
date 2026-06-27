@@ -33,9 +33,23 @@ export async function getBalanceCaja(carteraId: string): Promise<number> {
 }
 
 export async function crearMovimiento(input: Inserts<'caja'>): Promise<Caja> {
-  const { data, error } = await supabase.from('caja').insert(input).select().single()
+  // Idempotente: un reintento con el mismo client_op_id no duplica el movimiento.
+  const { data, error } = await supabase
+    .from('caja')
+    .upsert(input, { onConflict: 'client_op_id', ignoreDuplicates: true })
+    .select()
   if (error) throw error
-  return data
+  if (data && data.length) return data[0]
+  if (input.client_op_id) {
+    const { data: existente, error: e2 } = await supabase
+      .from('caja')
+      .select('*')
+      .eq('client_op_id', input.client_op_id)
+      .maybeSingle()
+    if (e2) throw e2
+    if (existente) return existente
+  }
+  throw new Error('No se pudo registrar el movimiento')
 }
 
 export async function editarMovimiento(id: string, patch: Partial<Inserts<'caja'>>): Promise<void> {

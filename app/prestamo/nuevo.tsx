@@ -7,6 +7,7 @@ import { getClientes } from '@/api/clientes'
 import { getPrestamo, editarPrestamo } from '@/api/prestamos'
 import { calcularPrestamo, primeraFechaPago } from '@/lib/calculos'
 import { ejecutar } from '@/lib/outbox'
+import { nuevoOpId } from '@/lib/opid'
 import { Boton } from '@/components/Boton'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
@@ -73,7 +74,7 @@ export default function NuevoPrestamo() {
       }
       return editando
         ? editarPrestamo(id!, datos).then(() => ({ encolado: false }))
-        : ejecutar('crearPrestamo', datos)
+        : ejecutar('crearPrestamo', { ...datos, client_op_id: nuevoOpId() })
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['prestamos', carteraId] })

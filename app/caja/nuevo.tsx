@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { editarMovimiento, getMovimiento } from '@/api/caja'
 import { ejecutar } from '@/lib/outbox'
+import { nuevoOpId } from '@/lib/opid'
 import { Boton } from '@/components/Boton'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
@@ -50,7 +51,7 @@ export default function NuevoMovimiento() {
       }
       return editando
         ? editarMovimiento(id!, payload).then(() => ({ encolado: false }))
-        : ejecutar('crearMovimiento', payload)
+        : ejecutar('crearMovimiento', { ...payload, client_op_id: nuevoOpId() })
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['caja', carteraId] })

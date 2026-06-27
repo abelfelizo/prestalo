@@ -6,6 +6,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { getPrestamo } from '@/api/prestamos'
 import { getConfigCartera } from '@/api/config'
 import { ejecutar } from '@/lib/outbox'
+import { nuevoOpId } from '@/lib/opid'
 import {
   capitalDeCuota,
   interesDeProximaCuota,
@@ -100,6 +101,7 @@ export default function RegistrarPago() {
     mutationFn: () => {
       const atraso = diasMora(prestamo!.fecha_proximo_pago)
       return ejecutar('registrarPago', {
+        client_op_id: nuevoOpId(),
         prestamo_id: prestamo!.id,
         cliente_id: prestamo!.cliente_id,
         fecha_pago: new Date().toISOString().slice(0, 10),
