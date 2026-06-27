@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
 import { getProximosCobros } from '@/api/prestamos'
 import { contarNoLeidas } from '@/api/alertas'
-import { getCarterasAccesibles, setCarteraActiva as setCarteraActivaApi } from '@/api/prestamistas'
+import { getCarterasAccesibles, setCarteraActiva as setCarteraActivaApi, getPrestamista } from '@/api/prestamistas'
 import { contarPendientes, flush, contarFallidas, reintentarFallidas } from '@/lib/outbox'
 import { queryClient } from '@/lib/queryClient'
 import { useFmt } from '@/lib/useFmt'
@@ -31,6 +31,11 @@ export default function Dashboard() {
   const setMoneda = useSession((s) => s.setMoneda)
 
   const carteras = useQuery({ queryKey: ['carteras-accesibles'], queryFn: getCarterasAccesibles })
+  const prestamista = useQuery({ queryKey: ['prestamista', prestamistaId], queryFn: () => getPrestamista(prestamistaId!), enabled: !!prestamistaId })
+
+  const hora = new Date().getHours()
+  const saludo = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches'
+  const primerNombre = (prestamista.data?.nombre ?? '').split(' ')[0]
 
   async function seleccionarCartera(c: { id: string; moneda: string }) {
     if (c.id === carteraId) return
@@ -80,7 +85,10 @@ export default function Dashboard() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refrescar} />}
     >
       <View style={s.titleRow}>
-        <Text style={s.title}>Inicio</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={s.greet}>{saludo},</Text>
+          <Text style={s.title} numberOfLines={1}>{primerNombre || 'Bienvenido'}</Text>
+        </View>
         <TouchableOpacity onPress={() => router.push('/alertas')} style={s.bell}>
           <Feather name="bell" size={20} color={color.ink} />
           {!!noLeidas.data && (
@@ -191,7 +199,8 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: color.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  title: { fontFamily: font.display, fontSize: 24, color: color.ink, letterSpacing: -0.6 },
+  greet: { fontFamily: font.body, fontSize: 13, color: color.muted },
+  title: { fontFamily: font.display, fontSize: 24, color: color.ink, letterSpacing: -0.6, marginTop: 1 },
   tabs: { paddingHorizontal: 18, gap: 8 },
   tab: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: radius.lg, backgroundColor: color.surface, ...shadowCard },
   tabActive: { backgroundColor: color.primary },
