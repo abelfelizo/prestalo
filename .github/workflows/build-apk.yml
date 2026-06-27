@@ -1,0 +1,38 @@
+name: Construir APK de Kuotas (Android)
+
+# Se ejecuta manualmente desde la pestaña "Actions" de GitHub (botón "Run workflow").
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Crear archivo .env (llaves públicas de Supabase)
+        run: |
+          echo "EXPO_PUBLIC_SUPABASE_URL=https://pphnaasmirbnuilgzfeo.supabase.co" >> .env
+          echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwaG5hYXNtaXJibnVpbGd6ZmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMTQ2MzQsImV4cCI6MjA4OTU5MDYzNH0.byFCgsk1t8OpWiy4ZcTmMed3hfyZgotbBmc6tpVsIV4" >> .env
+
+      - name: Instalar dependencias
+        run: npm install --legacy-peer-deps
+
+      - name: Instalar EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Vincular proyecto de Expo (crea el projectId si no existe)
+        run: eas init --non-interactive --force
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Construir el APK en la nube de Expo
+        run: eas build --platform android --profile android-apk --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
