@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { getCarterasAccesibles, setCarteraActiva, invitarColaborador } from '@/api/prestamistas'
@@ -10,8 +11,11 @@ import { limpiarPinLocal } from '@/lib/pin'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { usePinPrompt } from '@/store/pinPrompt'
-import { COLORS, COLOR_CARTERA } from '@/lib/constants'
+import { COLOR_CARTERA } from '@/lib/constants'
+import { color, font, radius, shadowCard, gradient } from '@/theme'
 import type { ColorCartera } from '@/types'
+
+type IconName = keyof typeof Feather.glyphMap
 
 export default function Ajustes() {
   const router = useRouter()
@@ -19,16 +23,8 @@ export default function Ajustes() {
   const pedirPin = usePinPrompt((s) => s.pedirPin)
   const [emailColab, setEmailColab] = useState('')
 
-  const carteras = useQuery({
-    queryKey: ['carteras-accesibles'],
-    queryFn: getCarterasAccesibles,
-  })
-
-  const herederos = useQuery({
-    queryKey: ['herederos', prestamistaId],
-    queryFn: () => getHerederos(prestamistaId!),
-    enabled: !!prestamistaId,
-  })
+  const carteras = useQuery({ queryKey: ['carteras-accesibles'], queryFn: getCarterasAccesibles })
+  const herederos = useQuery({ queryKey: ['herederos', prestamistaId], queryFn: () => getHerederos(prestamistaId!), enabled: !!prestamistaId })
 
   async function cambiarCartera(id: string, moneda: string) {
     if (prestamistaId) await setCarteraActiva(prestamistaId, id).catch(() => {})
@@ -97,28 +93,43 @@ export default function Ajustes() {
     ])
   }
 
+  function Fila({ icon, label, onPress }: { icon: IconName; label: string; onPress: () => void }) {
+    return (
+      <TouchableOpacity style={s.link} onPress={onPress} activeOpacity={0.7}>
+        <View style={s.linkIcon}><Feather name={icon} size={17} color={color.primary} /></View>
+        <Text style={s.linkText}>{label}</Text>
+        <Feather name="chevron-right" size={18} color={color.faint} style={s.chev} />
+      </TouchableOpacity>
+    )
+  }
+
   return (
-    <ScrollView style={s.container} contentContainerStyle={{ padding: 16, paddingTop: 56, paddingBottom: 110 }}>
+    <ScrollView style={s.container} contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 56, paddingBottom: 110 }}>
       <Text style={s.title}>Ajustes</Text>
+
+      <View style={s.profile}>
+        <LinearGradient colors={gradient.profile} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View style={s.profileAvatar}><Feather name="user" size={22} color="#fff" /></View>
+        <View style={{ flex: 1 }}>
+          <Text style={s.profileName}>Mi cuenta</Text>
+          <Text style={s.profileSub}>Prestamista · Plan Pro</Text>
+        </View>
+      </View>
 
       <Text style={s.section}>Mis carteras</Text>
       {carteras.isLoading ? (
-        <ActivityIndicator color={COLORS.primary} />
+        <ActivityIndicator color={color.primary} />
       ) : (
         (carteras.data ?? []).map((c) => (
-          <TouchableOpacity key={c.id} style={s.cartera} onPress={() => cambiarCartera(c.id, c.moneda)}>
-            <View style={[s.dot, { backgroundColor: COLOR_CARTERA[c.color as ColorCartera] ?? COLORS.primary }]} />
+          <TouchableOpacity key={c.id} style={s.cartera} onPress={() => cambiarCartera(c.id, c.moneda)} activeOpacity={0.7}>
+            <View style={[s.dot, { backgroundColor: COLOR_CARTERA[c.color as ColorCartera] ?? color.primary }]} />
             <Text style={s.carteraNombre}>{c.nombre}</Text>
             <Text style={s.carteraMoneda}>{c.moneda}</Text>
             {carteraActivaId === c.id && <Text style={s.activa}>✓ activa</Text>}
           </TouchableOpacity>
         ))
       )}
-      <TouchableOpacity style={s.link} onPress={() => router.push('/cartera/nueva')}>
-        <Feather name="plus-circle" size={18} color={COLORS.primary} />
-        <Text style={s.linkText}>Nueva cartera</Text>
-        <Feather name="chevron-right" size={18} color={COLORS.textLight} style={s.chev} />
-      </TouchableOpacity>
+      <Fila icon="plus-circle" label="Nueva cartera" onPress={() => router.push('/cartera/nueva')} />
 
       {!!prestamistaId && (
         <>
@@ -130,11 +141,11 @@ export default function Ajustes() {
               value={emailColab}
               onChangeText={setEmailColab}
               placeholder="email del cobrador"
-              placeholderTextColor="#bbb"
+              placeholderTextColor={color.faint}
               autoCapitalize="none"
               keyboardType="email-address"
             />
-            <TouchableOpacity style={s.shareBtn} onPress={compartir}>
+            <TouchableOpacity style={s.shareBtn} onPress={compartir} activeOpacity={0.9}>
               <Feather name="user-plus" size={15} color="#fff" />
               <Text style={s.shareBtnText}>Invitar</Text>
             </TouchableOpacity>
@@ -143,16 +154,8 @@ export default function Ajustes() {
       )}
 
       <Text style={s.section}>Cobranza</Text>
-      <TouchableOpacity style={s.link} onPress={() => router.push('/reportes')}>
-        <Feather name="bar-chart-2" size={18} color={COLORS.primary} />
-        <Text style={s.linkText}>Reportes</Text>
-        <Feather name="chevron-right" size={18} color={COLORS.textLight} style={s.chev} />
-      </TouchableOpacity>
-      <TouchableOpacity style={s.link} onPress={() => router.push('/config-mora')}>
-        <Feather name="settings" size={18} color={COLORS.primary} />
-        <Text style={s.linkText}>Configuración de mora</Text>
-        <Feather name="chevron-right" size={18} color={COLORS.textLight} style={s.chev} />
-      </TouchableOpacity>
+      <Fila icon="bar-chart-2" label="Reportes" onPress={() => router.push('/reportes')} />
+      <Fila icon="settings" label="Configuración de mora" onPress={() => router.push('/config-mora')} />
 
       <Text style={s.section}>Herederos</Text>
       {(herederos.data ?? []).map((h) => (
@@ -170,19 +173,15 @@ export default function Ajustes() {
           <Text style={s.herederoSub}>{h.relacion} · {h.telefono} · mantén presionado para eliminar</Text>
         </TouchableOpacity>
       ))}
-      <TouchableOpacity style={s.link} onPress={() => router.push('/heredero/nuevo')}>
-        <Feather name="user-plus" size={18} color={COLORS.primary} />
-        <Text style={s.linkText}>Agregar heredero</Text>
-        <Feather name="chevron-right" size={18} color={COLORS.textLight} style={s.chev} />
-      </TouchableOpacity>
+      <Fila icon="user-plus" label="Agregar heredero" onPress={() => router.push('/heredero/nuevo')} />
 
-      <TouchableOpacity style={s.logout} onPress={cerrarSesion}>
+      <TouchableOpacity style={s.logout} onPress={cerrarSesion} activeOpacity={0.8}>
         <Text style={s.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
 
       <Text style={s.section}>Zona de peligro</Text>
-      <TouchableOpacity style={s.danger} onPress={borrarCuenta}>
-        <Feather name="trash-2" size={16} color={COLORS.danger} />
+      <TouchableOpacity style={s.danger} onPress={borrarCuenta} activeOpacity={0.8}>
+        <Feather name="trash-2" size={16} color={color.danger} />
         <Text style={s.dangerText}>Eliminar mi cuenta y todos mis datos</Text>
       </TouchableOpacity>
       <Text style={s.hint}>Borra permanentemente tu cuenta. No se puede deshacer.</Text>
@@ -191,27 +190,32 @@ export default function Ajustes() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg, padding: 16, paddingTop: 56 },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
-  section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1, marginTop: 24, marginBottom: 10 },
-  cartera: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
-  dot: { width: 16, height: 16, borderRadius: 8 },
-  carteraNombre: { flex: 1, fontSize: 15, fontWeight: '700', color: COLORS.text },
-  carteraMoneda: { fontSize: 13, color: COLORS.textLight },
-  activa: { fontSize: 12, color: COLORS.success, fontWeight: '700', marginLeft: 8 },
-  link: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  linkText: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  container: { flex: 1, backgroundColor: color.bg },
+  title: { fontFamily: font.display, fontSize: 24, color: color.ink, letterSpacing: -0.6, marginBottom: 16 },
+  profile: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 18, borderRadius: radius.card, overflow: 'hidden', marginBottom: 8 },
+  profileAvatar: { width: 48, height: 48, borderRadius: radius.lg, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
+  profileName: { fontFamily: font.displaySemi, fontSize: 17, color: '#fff' },
+  profileSub: { fontFamily: font.body, fontSize: 12.5, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  section: { fontFamily: font.bodyBold, fontSize: 11, color: color.faint, textTransform: 'uppercase', letterSpacing: 1, marginTop: 24, marginBottom: 10 },
+  cartera: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.surface, borderRadius: radius.lg, padding: 14, marginBottom: 8, ...shadowCard },
+  dot: { width: 14, height: 14, borderRadius: 7 },
+  carteraNombre: { flex: 1, fontFamily: font.bodyBold, fontSize: 15, color: color.ink },
+  carteraMoneda: { fontFamily: font.bodySemi, fontSize: 13, color: color.muted },
+  activa: { fontFamily: font.bodyBold, fontSize: 12, color: color.success, marginLeft: 8 },
+  link: { backgroundColor: color.surface, borderRadius: radius.lg, padding: 13, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 12, ...shadowCard },
+  linkIcon: { width: 34, height: 34, borderRadius: radius.sm, backgroundColor: color.indigoTint, alignItems: 'center', justifyContent: 'center' },
+  linkText: { fontFamily: font.bodySemi, fontSize: 15, color: color.ink },
   chev: { marginLeft: 'auto' },
-  hint: { fontSize: 12, color: COLORS.textLight, marginBottom: 8 },
+  hint: { fontFamily: font.body, fontSize: 12, color: color.muted, marginBottom: 8 },
   shareRow: { flexDirection: 'row', gap: 8 },
-  shareInput: { flex: 1, backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
-  shareBtn: { backgroundColor: COLORS.primary, borderRadius: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center' },
-  shareBtnText: { color: '#fff', fontWeight: '700' },
-  heredero: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
-  herederoNombre: { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  herederoSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
-  logout: { marginTop: 32, borderRadius: 14, padding: 16, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger },
-  logoutText: { color: COLORS.danger, fontWeight: '700', fontSize: 15 },
-  danger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#FEF2F2', borderRadius: 14, padding: 16, borderWidth: 1.5, borderColor: COLORS.danger },
-  dangerText: { color: COLORS.danger, fontWeight: '700', fontSize: 14 },
+  shareInput: { flex: 1, backgroundColor: color.surface, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 11, fontFamily: font.body, fontSize: 14, color: color.ink, ...shadowCard },
+  shareBtn: { backgroundColor: color.primary, borderRadius: radius.md, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center' },
+  shareBtnText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 14 },
+  heredero: { backgroundColor: color.surface, borderRadius: radius.lg, padding: 14, marginBottom: 8, ...shadowCard },
+  herederoNombre: { fontFamily: font.bodyBold, fontSize: 15, color: color.ink },
+  herederoSub: { fontFamily: font.body, fontSize: 12, color: color.muted, marginTop: 2 },
+  logout: { marginTop: 28, borderRadius: radius.lg, padding: 15, alignItems: 'center', backgroundColor: color.surface, ...shadowCard },
+  logoutText: { fontFamily: font.bodyBold, color: color.danger, fontSize: 15 },
+  danger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: color.dangerTint, borderRadius: radius.lg, padding: 15, borderWidth: 1.5, borderColor: color.danger },
+  dangerText: { fontFamily: font.bodyBold, color: color.danger, fontSize: 14 },
 })

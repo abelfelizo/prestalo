@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import { Alert } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { getMovimientos, getBalanceCaja, eliminarMovimiento } from '@/api/caja'
 import { queryClient } from '@/lib/queryClient'
@@ -10,7 +9,7 @@ import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { usePinPrompt } from '@/store/pinPrompt'
 import { exigirSuscripcion } from '@/lib/guard'
-import { COLORS, GRADIENTS } from '@/lib/constants'
+import { color, font, radius, shadowCard, shadowRaised, gradient } from '@/theme'
 
 const MANUALES = ['capital_nuevo', 'retiro_personal', 'otro']
 
@@ -29,38 +28,32 @@ export default function Caja() {
   const carteraId = useSession((s) => s.carteraActivaId)
   const pedirPin = usePinPrompt((s) => s.pedirPin)
 
-  const balance = useQuery({
-    queryKey: ['caja-balance', carteraId],
-    queryFn: () => getBalanceCaja(carteraId!),
-    enabled: !!carteraId,
-  })
-  const movs = useQuery({
-    queryKey: ['caja', carteraId],
-    queryFn: () => getMovimientos(carteraId!),
-    enabled: !!carteraId,
-  })
+  const balance = useQuery({ queryKey: ['caja-balance', carteraId], queryFn: () => getBalanceCaja(carteraId!), enabled: !!carteraId })
+  const movs = useQuery({ queryKey: ['caja', carteraId], queryFn: () => getMovimientos(carteraId!), enabled: !!carteraId })
 
-  if (movs.isLoading) return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
+  if (movs.isLoading) return <View style={s.center}><ActivityIndicator color={color.primary} /></View>
 
   return (
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Caja</Text>
-        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/caja/nuevo')}>
-          <Feather name="plus" size={15} color="#fff" />
-          <Text style={s.addText}>Movimiento</Text>
+        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/caja/nuevo')} activeOpacity={0.9}>
+          <Feather name="plus" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <LinearGradient colors={GRADIENTS.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.balanceBox}>
+      <View style={s.balanceBox}>
+        <LinearGradient colors={gradient.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={[color.cyan, 'transparent']} start={{ x: 1, y: 1 }} end={{ x: 0.3, y: 0.2 }} style={[StyleSheet.absoluteFill, { opacity: 0.4 }]} />
         <Text style={s.balanceLabel}>Balance en caja</Text>
         <Text style={s.balanceVal}>{f(balance.data ?? 0)}</Text>
-      </LinearGradient>
+      </View>
 
+      <Text style={s.section}>Movimientos</Text>
       <FlatList
         data={movs.data ?? []}
         keyExtractor={(i) => i.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 110 }}
+        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 110 }}
         ListEmptyComponent={<Text style={s.empty}>Sin movimientos todavía</Text>}
         renderItem={({ item }) => {
           const entrada = item.tipo === 'entrada'
@@ -89,12 +82,15 @@ export default function Caja() {
                   : undefined
               }
             >
+              <View style={[s.icon, { backgroundColor: entrada ? color.successTint : color.dangerTint }]}>
+                <Feather name={entrada ? 'arrow-up-right' : 'arrow-down-right'} size={17} color={entrada ? color.success : color.danger} />
+              </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.cat}>{CAT_LABEL[item.categoria] ?? item.categoria}</Text>
                 {!!item.descripcion && <Text style={s.desc}>{item.descripcion}</Text>}
                 <Text style={s.fecha}>{item.fecha}{editable ? ' · mantén presionado' : ''}</Text>
               </View>
-              <Text style={[s.monto, { color: entrada ? COLORS.success : COLORS.danger }]}>
+              <Text style={[s.monto, { color: entrada ? color.success : color.danger }]}>
                 {entrada ? '+' : '−'} {f(item.monto)}
               </Text>
             </TouchableOpacity>
@@ -106,19 +102,20 @@ export default function Caja() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 56 },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
-  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  addText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  balanceBox: { marginHorizontal: 16, borderRadius: 20, padding: 22, alignItems: 'center', overflow: 'hidden' },
-  balanceLabel: { fontSize: 12.5, color: 'rgba(255,255,255,0.85)', fontWeight: '600' },
-  balanceVal: { fontSize: 32, fontWeight: '800', color: '#FFFFFF', marginTop: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, padding: 14, marginBottom: 8 },
-  cat: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  desc: { fontSize: 12, color: COLORS.textLight, marginTop: 1 },
-  fecha: { fontSize: 11, color: COLORS.textLight, marginTop: 2 },
-  monto: { fontSize: 15, fontWeight: '800' },
-  empty: { textAlign: 'center', color: COLORS.textLight, marginTop: 40 },
+  container: { flex: 1, backgroundColor: color.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingTop: 56, marginBottom: 14 },
+  title: { fontFamily: font.display, fontSize: 24, color: color.ink, letterSpacing: -0.6 },
+  addBtn: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: color.primary, alignItems: 'center', justifyContent: 'center', ...shadowRaised },
+  balanceBox: { marginHorizontal: 18, borderRadius: radius.card, padding: 22, alignItems: 'center', overflow: 'hidden', ...shadowRaised },
+  balanceLabel: { fontFamily: font.bodySemi, fontSize: 12.5, color: 'rgba(255,255,255,0.85)' },
+  balanceVal: { fontFamily: font.display, fontSize: 32, color: '#fff', marginTop: 6, letterSpacing: -1, fontVariant: ['tabular-nums'] },
+  section: { fontFamily: font.displaySemi, fontSize: 14, color: color.ink, marginHorizontal: 18, marginTop: 22, marginBottom: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.surface, borderRadius: radius.xl, padding: 13, marginBottom: 10, ...shadowCard },
+  icon: { width: 38, height: 38, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  cat: { fontFamily: font.bodyBold, fontSize: 14, color: color.ink },
+  desc: { fontFamily: font.body, fontSize: 12, color: color.muted, marginTop: 1 },
+  fecha: { fontFamily: font.body, fontSize: 11, color: color.faint, marginTop: 2 },
+  monto: { fontFamily: font.displaySemi, fontSize: 15, fontVariant: ['tabular-nums'] },
+  empty: { fontFamily: font.body, textAlign: 'center', color: color.muted, marginTop: 40 },
 })
