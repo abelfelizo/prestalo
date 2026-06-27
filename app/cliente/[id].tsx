@@ -129,7 +129,7 @@ function Row({ label, val }: { label: string; val: string }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: color.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg },
-  header: { paddingTop: 54, paddingBottom: 30, alignItems: 'center', overflow: 'hidden', borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
+  header: { paddingTop: 54, paddingBottom: 30, alignItems: 'center', overflow: 'hidden' },
   back: { position: 'absolute', top: 50, left: 16, width: 38, height: 38, borderRadius: radius.md, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
   avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   avatarText: { fontFamily: font.display, fontSize: 24, color: color.primary },
