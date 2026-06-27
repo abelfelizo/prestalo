@@ -43,7 +43,7 @@ Lo corres tú (con tu cuenta gratis de expo.dev). No requiere terminal si usas l
 | **Rotar la anon key** de Supabase | Supabase → Settings → API | Estuvo en git; higiene básica |
 | **Plan Supabase Pro + backups/PITR** (~US$25/mes) | Supabase → Billing | Para no perder datos en producción |
 | **Activar protección de contraseñas filtradas** | Supabase → Auth → Policies | Punto 10 del checklist |
-| **Revisar "Confirm email"** en Auth | Supabase → Auth | Define el flujo de registro |
+| **Confirmación de correo: arreglar el enlace** | Supabase → Auth (Site URL/Redirect) + página de éxito | Hoy el enlace de confirmación da error (aunque confirma). En el lanzamiento oficial: configurar un destino para que el enlace abra una pantalla limpia (opción 2). |
 | **RevenueCat + producto** `kuotas_pro_mensual` | revenuecat.com + tiendas | Para cobrar (ver `docs/DEPLOY.md`) |
 | **Cuenta Apple Developer** (US$99/año) y/o **Google Play** (US$25) | developer.apple.com / play | Para publicar en tiendas |
 | **Publicar política de privacidad** + email de contacto | `docs/PRIVACIDAD.md` (falta el email) | Requisito legal y de tienda |
