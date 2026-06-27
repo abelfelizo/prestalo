@@ -39,7 +39,7 @@ export default function NuevaGarantia() {
     if (r.canceled || !r.assets?.[0]) return
     setSubiendo(true)
     try {
-      const path = await subirFotoGarantia(r.assets[0].uri)
+      const path = await subirFotoGarantia(r.assets[0].uri, prestamoId)
       const signed = await firmarUrl(path)
       setFotos((prev) => [...prev, path])
       setPreviews((prev) => [...prev, signed ?? ''])

@@ -3,13 +3,17 @@ import { supabase } from '@/lib/supabase'
 const BUCKET = 'garantias'
 const EXPIRA_SEG = 60 * 60 // 1h
 
-/** Sube una imagen local (uri) al bucket privado y devuelve su RUTA (no la URL). */
-export async function subirFotoGarantia(uri: string): Promise<string> {
+/**
+ * Sube una imagen local (uri) al bucket privado y devuelve su RUTA (no la URL).
+ * La foto se guarda en una carpeta por préstamo para que solo el dueño/colaborador
+ * de ese préstamo pueda verla (lo impone la política RLS de storage).
+ */
+export async function subirFotoGarantia(uri: string, prestamoId: string): Promise<string> {
   const res = await fetch(uri)
   const arrayBuffer = await res.arrayBuffer()
   const ext = (uri.split('.').pop() || 'jpg').toLowerCase().split('?')[0]
   const contentType = ext === 'png' ? 'image/png' : 'image/jpeg'
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const path = `${prestamoId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, arrayBuffer, { contentType, upsert: false })
   if (error) throw error
