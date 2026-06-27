@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router'
 import { accesoHeredero, type AccesoHeredero } from '@/api/herederos'
 import { hashPin } from '@/lib/pin'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS, font } from '@/theme'
 
 export default function HerederoAcceso() {
   const router = useRouter()
@@ -89,23 +89,23 @@ export default function HerederoAcceso() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.primary },
-  title: { fontSize: 26, fontWeight: '800', color: COLORS.gold },
-  sub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 6, marginBottom: 10, lineHeight: 19 },
-  label: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6, marginTop: 14 },
-  input: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 14, fontSize: 15, color: '#fff', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.12)' },
-  btn: { backgroundColor: COLORS.gold, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24 },
-  btnText: { fontSize: 16, fontWeight: '700', color: COLORS.primary },
-  warn: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 16, marginTop: 20 },
-  warnText: { color: '#fff', fontSize: 14, lineHeight: 20 },
-  hero: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 18, padding: 22, alignItems: 'center', marginTop: 10 },
-  heroLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-  heroVal: { fontSize: 28, fontWeight: '800', color: COLORS.gold, marginTop: 4 },
-  heroSub: { fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 6 },
-  section: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1, marginTop: 24, marginBottom: 10 },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 },
-  cardName: { fontSize: 15, fontWeight: '700', color: '#fff' },
-  cardSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
+  container: { flex: 1, backgroundColor: COLORS.primaryDeep },
+  title: { fontFamily: font.display, fontSize: 26, color: COLORS.cyanLight, letterSpacing: -0.6 },
+  sub: { fontFamily: font.body, fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 6, marginBottom: 10, lineHeight: 19 },
+  label: { fontFamily: font.bodyBold, fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginTop: 16 },
+  input: { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 16, padding: 14, fontFamily: font.body, fontSize: 15, color: '#fff', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.22)' },
+  btn: { backgroundColor: '#fff', borderRadius: 16, padding: 16, alignItems: 'center', marginTop: 24 },
+  btnText: { fontFamily: font.bodyBold, fontSize: 15, color: COLORS.primary },
+  warn: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16, padding: 16, marginTop: 20 },
+  warnText: { fontFamily: font.body, color: '#fff', fontSize: 14, lineHeight: 20 },
+  hero: { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 22, padding: 22, alignItems: 'center', marginTop: 10 },
+  heroLabel: { fontFamily: font.bodySemi, fontSize: 12, color: 'rgba(255,255,255,0.6)' },
+  heroVal: { fontFamily: font.display, fontSize: 28, color: COLORS.cyanLight, marginTop: 4 },
+  heroSub: { fontFamily: font.body, fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 6 },
+  section: { fontFamily: font.bodyBold, fontSize: 11, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: 1, marginTop: 24, marginBottom: 10 },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 16, padding: 14, marginBottom: 8 },
+  cardName: { fontFamily: font.bodyBold, fontSize: 15, color: '#fff' },
+  cardSub: { fontFamily: font.body, fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 },
   wa: { fontSize: 22 },
-  cancel: { textAlign: 'center', color: 'rgba(255,255,255,0.5)', marginTop: 24, fontSize: 14 },
+  cancel: { fontFamily: font.bodySemi, textAlign: 'center', color: 'rgba(255,255,255,0.5)', marginTop: 24, fontSize: 14 },
 })

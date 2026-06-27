@@ -13,7 +13,7 @@ import {
 import { signOut } from '@/api/auth'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
-import { COLORS, GRADIENTS } from '@/lib/constants'
+import { font, gradient } from '@/theme'
 
 export default function Lock() {
   const router = useRouter()
@@ -113,7 +113,7 @@ export default function Lock() {
       : 'Ingresa tu PIN'
 
   return (
-    <LinearGradient colors={GRADIENTS.authBg} style={{ flex: 1 }}>
+    <LinearGradient colors={gradient.hero} style={{ flex: 1 }}>
     <View style={s.container}>
       <Text style={s.title}>Kuotas</Text>
       <Text style={s.sub}>{sub}</Text>
@@ -153,14 +153,14 @@ export default function Lock() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', padding: 32 },
-  title: { fontSize: 34, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
-  sub: { fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 40 },
+  title: { fontFamily: font.display, fontSize: 34, color: '#FFFFFF', marginBottom: 8, letterSpacing: -1 },
+  sub: { fontFamily: font.body, fontSize: 14, color: 'rgba(255,255,255,0.7)', marginBottom: 40 },
   dots: { flexDirection: 'row', gap: 16, marginBottom: 52 },
   dot: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)' },
   dotActive: { backgroundColor: '#FFFFFF', borderColor: '#FFFFFF' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', width: 288, gap: 12, justifyContent: 'center' },
   key: { width: 84, height: 84, borderRadius: 42, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
   keyHidden: { backgroundColor: 'transparent' },
-  keyText: { fontSize: 26, fontWeight: '500', color: '#fff' },
-  olvide: { color: 'rgba(255,255,255,0.7)', fontSize: 14 },
+  keyText: { fontFamily: font.displaySemi, fontSize: 26, color: '#fff' },
+  olvide: { fontFamily: font.bodySemi, color: 'rgba(255,255,255,0.7)', fontSize: 14 },
 })

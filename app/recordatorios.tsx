@@ -6,7 +6,7 @@ import { getConfigCartera } from '@/api/config'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS, font, radius, shadowCard } from '@/theme'
 
 export default function Recordatorios() {
   const router = useRouter()
@@ -64,15 +64,15 @@ export default function Recordatorios() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg, paddingHorizontal: 16, paddingTop: 56 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 26, fontWeight: '800', color: COLORS.primary },
-  sub: { fontSize: 13, color: COLORS.textLight, marginTop: 6 },
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, marginBottom: 8 },
-  nombre: { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  cardSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
+  container: { flex: 1, backgroundColor: COLORS.bg, paddingHorizontal: 18, paddingTop: 56 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg },
+  title: { fontFamily: font.display, fontSize: 24, color: COLORS.ink, letterSpacing: -0.6 },
+  sub: { fontFamily: font.body, fontSize: 13, color: COLORS.muted, marginTop: 6 },
+  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: radius.lg, padding: 14, marginBottom: 8, ...shadowCard },
+  nombre: { fontFamily: font.bodyBold, fontSize: 15, color: COLORS.ink },
+  cardSub: { fontFamily: font.body, fontSize: 12, color: COLORS.muted, marginTop: 2 },
   wa: { fontSize: 24 },
-  empty: { textAlign: 'center', color: COLORS.textLight, marginTop: 40 },
+  empty: { fontFamily: font.body, textAlign: 'center', color: COLORS.muted, marginTop: 40 },
   backBtn: { padding: 16 },
-  back: { textAlign: 'center', color: COLORS.textLight, fontSize: 14 },
+  back: { fontFamily: font.bodySemi, textAlign: 'center', color: COLORS.muted, fontSize: 14 },
 })

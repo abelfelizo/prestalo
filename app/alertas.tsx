@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getAlertas, marcarLeida, marcarTodasLeidas } from '@/api/alertas'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS, font, radius, shadowCard } from '@/theme'
 
 const ICONO: Record<string, string> = { cobro_hoy: '📅', mora: '⚠️', heredero: '🔑', cartera: '💼' }
 
@@ -70,18 +70,18 @@ export default function Alertas() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 56 },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
-  readAll: { color: COLORS.info, fontWeight: '600', fontSize: 14 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, padding: 14, marginBottom: 8 },
-  cardNoLeida: { backgroundColor: '#fffdf5', borderColor: COLORS.gold },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 18, paddingTop: 56 },
+  title: { fontFamily: font.display, fontSize: 24, color: COLORS.ink, letterSpacing: -0.6 },
+  readAll: { fontFamily: font.bodySemi, color: COLORS.primary, fontSize: 14 },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.surface, borderRadius: radius.lg, padding: 14, marginBottom: 8, ...shadowCard },
+  cardNoLeida: { backgroundColor: COLORS.indigoTint },
   icono: { fontSize: 22 },
-  cardTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  cardMsg: { fontSize: 13, color: COLORS.textLight, marginTop: 2 },
-  fecha: { fontSize: 11, color: COLORS.textLight, marginTop: 4 },
+  cardTitle: { fontFamily: font.bodyBold, fontSize: 14, color: COLORS.ink },
+  cardMsg: { fontFamily: font.body, fontSize: 13, color: COLORS.muted, marginTop: 2 },
+  fecha: { fontFamily: font.body, fontSize: 11, color: COLORS.faint, marginTop: 4 },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.danger },
-  empty: { textAlign: 'center', color: COLORS.textLight, marginTop: 40 },
+  empty: { fontFamily: font.body, textAlign: 'center', color: COLORS.muted, marginTop: 40 },
   backBtn: { padding: 16 },
-  back: { textAlign: 'center', color: COLORS.textLight, fontSize: 14 },
+  back: { fontFamily: font.bodySemi, textAlign: 'center', color: COLORS.muted, fontSize: 14 },
 })

@@ -6,7 +6,8 @@ import { getPrestamos } from '@/api/prestamos'
 import { Boton } from '@/components/Boton'
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS, font, radius, shadowCard, gradient } from '@/theme'
+import { LinearGradient } from 'expo-linear-gradient'
 
 export default function Reportes() {
   const router = useRouter()
@@ -46,6 +47,7 @@ export default function Reportes() {
       <Text style={s.title}>Reportes</Text>
 
       <View style={s.hero}>
+        <LinearGradient colors={gradient.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <Text style={s.heroLabel}>Capital en la calle</Text>
         <Text style={s.heroVal}>{f(data.capital_en_calle)}</Text>
       </View>
@@ -53,7 +55,7 @@ export default function Reportes() {
       <View style={s.grid}>
         <Met label="Total prestado" val={f(data.total_prestado)} />
         <Met label="Total cobrado" val={f(data.total_cobrado)} color={COLORS.success} />
-        <Met label="Intereses generados" val={f(data.intereses_generados)} color={COLORS.gold} />
+        <Met label="Intereses generados" val={f(data.intereses_generados)} color={COLORS.cyan} />
         <Met label="Mora generada" val={f(data.mora_generada)} color={COLORS.danger} />
         <Met label="Clientes" val={String(data.clientes)} />
         <Met label="Préstamos activos" val={String(data.por_estado['activo'] ?? 0)} />
@@ -85,19 +87,17 @@ function Met({ label, val, color }: { label: string; val: string; color?: string
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg },
-  title: { fontSize: 26, fontWeight: '800', color: COLORS.primary, marginBottom: 16 },
-  hero: { backgroundColor: COLORS.primary, borderRadius: 18, padding: 22, alignItems: 'center', marginBottom: 14 },
-  heroLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-  heroVal: { fontSize: 30, fontWeight: '800', color: COLORS.gold, marginTop: 4 },
+  title: { fontFamily: font.display, fontSize: 24, color: COLORS.ink, letterSpacing: -0.6, marginBottom: 16 },
+  hero: { borderRadius: radius.card, padding: 22, alignItems: 'center', marginBottom: 14, overflow: 'hidden' },
+  heroLabel: { fontFamily: font.bodySemi, fontSize: 12, color: 'rgba(255,255,255,0.7)' },
+  heroVal: { fontFamily: font.display, fontSize: 30, color: '#fff', marginTop: 4, fontVariant: ['tabular-nums'] },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  met: { flexBasis: '47%', flexGrow: 1, backgroundColor: COLORS.surface, borderRadius: 14, padding: 14 },
-  metLabel: { fontSize: 11, color: COLORS.textLight, marginBottom: 6 },
-  metVal: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1, marginTop: 24, marginBottom: 10 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: COLORS.surface, borderRadius: 10, padding: 12, marginBottom: 6 },
-  rowLabel: { fontSize: 14, color: COLORS.text, textTransform: 'capitalize' },
-  rowVal: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  btn: { backgroundColor: COLORS.primary, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24 },
-  btnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  cancel: { textAlign: 'center', color: COLORS.textLight, marginTop: 16, fontSize: 14 },
+  met: { flexBasis: '47%', flexGrow: 1, backgroundColor: COLORS.surface, borderRadius: radius.xl, padding: 14, ...shadowCard },
+  metLabel: { fontFamily: font.bodySemi, fontSize: 11, color: COLORS.muted, marginBottom: 6 },
+  metVal: { fontFamily: font.displaySemi, fontSize: 18, color: COLORS.ink, fontVariant: ['tabular-nums'] },
+  section: { fontFamily: font.displaySemi, fontSize: 14, color: COLORS.ink, marginTop: 24, marginBottom: 12 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: COLORS.surface, borderRadius: radius.md, padding: 12, marginBottom: 6, ...shadowCard },
+  rowLabel: { fontFamily: font.body, fontSize: 14, color: COLORS.ink, textTransform: 'capitalize' },
+  rowVal: { fontFamily: font.bodyBold, fontSize: 14, color: COLORS.ink },
+  cancel: { fontFamily: font.bodySemi, textAlign: 'center', color: COLORS.muted, marginTop: 16, fontSize: 14 },
 })

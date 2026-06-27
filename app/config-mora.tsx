@@ -6,7 +6,7 @@ import { getConfigCartera, guardarConfigCartera } from '@/api/config'
 import { queryClient } from '@/lib/queryClient'
 import { Boton } from '@/components/Boton'
 import { useSession } from '@/store/session'
-import { COLORS } from '@/lib/constants'
+import { color as COLORS, font, radius, shadowCard } from '@/theme'
 
 const TIPOS = [
   { v: 'porcentaje_diario', label: '% diario' },
@@ -77,7 +77,7 @@ export default function ConfigMora() {
 
       <View style={s.switchRow}>
         <Text style={s.switchLabel}>Aplicar mora</Text>
-        <Switch value={aplica} onValueChange={setAplica} trackColor={{ true: COLORS.gold }} />
+        <Switch value={aplica} onValueChange={setAplica} trackColor={{ true: COLORS.primary }} />
       </View>
 
       {aplica && (
@@ -123,17 +123,15 @@ export default function ConfigMora() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg },
-  title: { fontSize: 26, fontWeight: '800', color: COLORS.primary, marginBottom: 8 },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, backgroundColor: COLORS.surface, borderRadius: 12, padding: 14 },
-  switchLabel: { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  label: { fontSize: 12, fontWeight: '700', color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6, marginTop: 14 },
-  input: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, fontSize: 15, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
+  title: { fontFamily: font.display, fontSize: 24, color: COLORS.ink, letterSpacing: -0.6, marginBottom: 8 },
+  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, backgroundColor: COLORS.surface, borderRadius: radius.md, padding: 14, ...shadowCard },
+  switchLabel: { fontFamily: font.bodyBold, fontSize: 15, color: COLORS.ink },
+  label: { fontFamily: font.bodyBold, fontSize: 11, color: COLORS.faint, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginTop: 16 },
+  input: { backgroundColor: COLORS.surface, borderRadius: radius.md, padding: 14, fontFamily: font.body, fontSize: 15, color: COLORS.ink, ...shadowCard },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: COLORS.surface },
-  chipSel: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipText: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
+  chip: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: radius.md, backgroundColor: COLORS.surface, ...shadowCard },
+  chipSel: { backgroundColor: COLORS.primary },
+  chipText: { fontFamily: font.bodySemi, fontSize: 13, color: COLORS.ink },
   chipTextSel: { color: '#fff' },
-  btn: { backgroundColor: COLORS.primary, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 28 },
-  btnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  cancel: { textAlign: 'center', color: COLORS.textLight, marginTop: 16, fontSize: 14 },
+  cancel: { fontFamily: font.bodySemi, textAlign: 'center', color: COLORS.muted, marginTop: 16, fontSize: 14 },
 })

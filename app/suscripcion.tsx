@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Boton } from '@/components/Boton'
-import { COLORS, GRADIENTS } from '@/lib/constants'
+import { color as COLORS, font, radius, gradient } from '@/theme'
 import { comprarSuscripcion, restaurarCompras, getPrecioPlan } from '@/lib/iap'
 import { useSuscripcion } from '@/store/suscripcion'
 
@@ -60,7 +60,7 @@ export default function Suscripcion() {
   const enPrueba = estado === 'prueba'
 
   return (
-    <LinearGradient colors={GRADIENTS.authBg} style={s.bg}>
+    <LinearGradient colors={gradient.hero} style={s.bg}>
       <ScrollView contentContainerStyle={s.content}>
         {estado !== 'expirada' && (
           <TouchableOpacity style={s.cerrar} onPress={() => router.back()}>
@@ -114,13 +114,13 @@ const s = StyleSheet.create({
   content: { padding: 24, paddingTop: 64, paddingBottom: 48, alignItems: 'center' },
   cerrar: { position: 'absolute', top: 56, right: 20, padding: 6, zIndex: 2 },
   iconWrap: { width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  title: { fontSize: 30, fontWeight: '800', color: '#fff' },
-  sub: { fontSize: 15, color: 'rgba(255,255,255,0.85)', textAlign: 'center', marginTop: 8, marginBottom: 20, lineHeight: 21 },
-  card: { width: '100%', backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 20, padding: 20, gap: 14 },
+  title: { fontFamily: font.display, fontSize: 30, color: '#fff', letterSpacing: -0.6 },
+  sub: { fontFamily: font.body, fontSize: 15, color: 'rgba(255,255,255,0.85)', textAlign: 'center', marginTop: 8, marginBottom: 20, lineHeight: 21 },
+  card: { width: '100%', backgroundColor: 'rgba(255,255,255,0.97)', borderRadius: radius.card, padding: 20, gap: 14 },
   fila: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  beneficio: { fontSize: 15, color: COLORS.text, fontWeight: '600', flex: 1 },
-  precio: { fontSize: 26, fontWeight: '800', color: '#fff', marginTop: 22 },
-  nota: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 6, paddingHorizontal: 12 },
+  beneficio: { fontFamily: font.bodySemi, fontSize: 15, color: COLORS.ink, flex: 1 },
+  precio: { fontFamily: font.display, fontSize: 26, color: '#fff', marginTop: 22, fontVariant: ['tabular-nums'] },
+  nota: { fontFamily: font.body, fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center', marginTop: 6, paddingHorizontal: 12 },
   restaurar: { marginTop: 16, padding: 8 },
-  restaurarText: { color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
+  restaurarText: { fontFamily: font.bodySemi, color: 'rgba(255,255,255,0.85)', fontSize: 14, textDecorationLine: 'underline' },
 })
