@@ -16,6 +16,9 @@ export function errMsg(e: unknown, fallback = 'Algo salió mal. Inténtalo de nu
   if (m.includes('network') || m.includes('fetch') || m.includes('failed to') || m.includes('timeout')) {
     return 'Sin conexión. Revisa tu internet e inténtalo de nuevo.'
   }
+  if (m.includes('intentos')) {
+    return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
+  }
   if (m.includes('invalid login') || m.includes('invalid credentials')) {
     return 'Correo o contraseña incorrectos.'
   }
