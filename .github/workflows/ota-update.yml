@@ -36,6 +36,6 @@ jobs:
         run: npm install -g eas-cli
 
       - name: Publicar actualización OTA
-        run: eas update --branch production --message "${{ github.event.head_commit.message }}" --non-interactive
+        run: eas update --branch production --platform android --message "${{ github.sha }}" --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
