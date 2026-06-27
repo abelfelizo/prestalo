@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getPrestamo, crearPrestamo, marcarRefinanciado } from '@/api/prestamos'
@@ -69,7 +70,7 @@ export default function Refinanciar() {
       Alert.alert('Refinanciado', 'Se creó el préstamo nuevo y el anterior quedó cerrado.')
       router.back()
     },
-    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo refinanciar'),
+    onError: (e: any) => Alert.alert('Error', errMsg(e, 'No se pudo refinanciar')),
   })
 
   function guardar() {

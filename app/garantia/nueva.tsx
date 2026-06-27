@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Image } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import * as ImagePicker from 'expo-image-picker'
@@ -43,7 +44,7 @@ export default function NuevaGarantia() {
       setFotos((prev) => [...prev, path])
       setPreviews((prev) => [...prev, signed ?? ''])
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'No se pudo subir la foto')
+      Alert.alert('Error', errMsg(e, 'No se pudo subir la foto'))
     } finally {
       setSubiendo(false)
     }
@@ -65,7 +66,7 @@ export default function NuevaGarantia() {
       queryClient.invalidateQueries({ queryKey: ['garantias', prestamoId] })
       router.back()
     },
-    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo guardar'),
+    onError: (e: any) => Alert.alert('Error', errMsg(e, 'No se pudo guardar')),
   })
 
   return (

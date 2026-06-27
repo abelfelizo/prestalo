@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { getUsuarioActual } from '@/api/auth'
@@ -58,7 +59,7 @@ export default function Onboarding() {
       setDesbloqueado(true)
       router.replace('/(app)/dashboard')
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'No se pudo completar el registro')
+      Alert.alert('Error', errMsg(e, 'No se pudo completar el registro'))
     } finally {
       setLoading(false)
     }

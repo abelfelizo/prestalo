@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { editarMovimiento, getMovimiento } from '@/api/caja'
@@ -57,7 +58,7 @@ export default function NuevoMovimiento() {
       if (res?.encolado) Alert.alert('Sin conexión', 'El movimiento se guardó y se enviará al recuperar internet.')
       router.back()
     },
-    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo registrar'),
+    onError: (e: any) => Alert.alert('Error', errMsg(e, 'No se pudo registrar')),
   })
 
   function guardar() {

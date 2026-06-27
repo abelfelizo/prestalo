@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch, Alert, ActivityIndicator } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { useRouter } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getConfigCartera, guardarConfigCartera } from '@/api/config'
@@ -66,7 +67,7 @@ export default function ConfigMora() {
       Alert.alert('Guardado', 'Configuración de mora actualizada')
       router.back()
     },
-    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo guardar'),
+    onError: (e: any) => Alert.alert('Error', errMsg(e, 'No se pudo guardar')),
   })
 
   if (isLoading) return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>

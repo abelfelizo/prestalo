@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { useRouter } from 'expo-router'
 import { useMutation } from '@tanstack/react-query'
 import { crearCartera, setCarteraActiva } from '@/api/prestamistas'
@@ -45,7 +46,7 @@ export default function NuevaCartera() {
       }
       router.back()
     },
-    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo crear la cartera'),
+    onError: (e: any) => Alert.alert('Error', errMsg(e, 'No se pudo crear la cartera')),
   })
 
   function guardar() {

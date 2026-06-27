@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { Feather } from '@expo/vector-icons'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
@@ -57,7 +58,7 @@ export default function DetallePrestamo() {
             await otorgarProrroga(p.id, nueva)
             refrescarTodo()
           } catch (e: any) {
-            Alert.alert('Error', e.message ?? 'No se pudo otorgar la prórroga')
+            Alert.alert('Error', errMsg(e, 'No se pudo otorgar la prórroga'))
           }
         },
       },
@@ -71,7 +72,7 @@ export default function DetallePrestamo() {
         refrescarTodo()
         router.back()
       } catch (e: any) {
-        Alert.alert('Error', e.message ?? 'No se pudo cancelar')
+        Alert.alert('Error', errMsg(e, 'No se pudo cancelar'))
       }
     }, 'PIN para cancelar el préstamo')
   }
@@ -82,7 +83,7 @@ export default function DetallePrestamo() {
         await anularPago(pagoId)
         refrescarTodo()
       } catch (e: any) {
-        Alert.alert('Error', e.message ?? 'No se pudo anular')
+        Alert.alert('Error', errMsg(e, 'No se pudo anular'))
       }
     }, 'PIN para anular el pago')
   }
@@ -92,7 +93,7 @@ export default function DetallePrestamo() {
       await devolverGarantia(garantiaId)
       queryClient.invalidateQueries({ queryKey: ['garantias', id] })
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'No se pudo actualizar')
+      Alert.alert('Error', errMsg(e, 'No se pudo actualizar'))
     }
   }
 

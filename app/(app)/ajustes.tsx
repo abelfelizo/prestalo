@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
@@ -46,7 +47,7 @@ export default function Ajustes() {
         Alert.alert('Listo', 'La cartera fue compartida con ese cobrador.')
       }
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'No se pudo compartir')
+      Alert.alert('Error', errMsg(e, 'No se pudo compartir'))
     }
   }
 
@@ -68,7 +69,7 @@ export default function Ajustes() {
                 queryClient.clear()
                 router.replace('/(auth)/login')
               } catch (e: any) {
-                Alert.alert('Error', e.message ?? 'No se pudo eliminar la cuenta')
+                Alert.alert('Error', errMsg(e, 'No se pudo eliminar la cuenta'))
               }
             }, 'PIN para eliminar tu cuenta'),
         },

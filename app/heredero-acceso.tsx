@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { useRouter } from 'expo-router'
 import { accesoHeredero, type AccesoHeredero } from '@/api/herederos'
 import { hashPin } from '@/lib/pin'
@@ -24,7 +25,7 @@ export default function HerederoAcceso() {
       }
       setResultado(r)
     } catch (e: any) {
-      Alert.alert('Error', e.message ?? 'No se pudo consultar')
+      Alert.alert('Error', errMsg(e, 'No se pudo consultar'))
     } finally {
       setLoading(false)
     }

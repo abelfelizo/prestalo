@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { editarCliente, getCliente } from '@/api/clientes'
@@ -52,7 +53,7 @@ export default function NuevoCliente() {
       if (res?.encolado) Alert.alert('Sin conexión', 'El cliente se guardó y se enviará al recuperar internet.')
       router.back()
     },
-    onError: (e: any) => Alert.alert('Error', e.message ?? 'No se pudo guardar el cliente'),
+    onError: (e: any) => Alert.alert('Error', errMsg(e, 'No se pudo guardar el cliente')),
   })
 
   function guardar() {

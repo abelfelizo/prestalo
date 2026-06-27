@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router'
 import { Boton } from '@/components/Boton'
 import { color as COLORS, font, radius, gradient } from '@/theme'
 import { comprarSuscripcion, restaurarCompras, getPrecioPlan } from '@/lib/iap'
+import { errMsg } from '@/lib/errores'
 import { useSuscripcion } from '@/store/suscripcion'
 
 const BENEFICIOS = [
@@ -39,7 +40,7 @@ export default function Suscripcion() {
     } catch (e: any) {
       // El usuario cancelando la compra no es un error que mostrar.
       if (!String(e?.message ?? '').toLowerCase().includes('cancel')) {
-        Alert.alert('No se pudo completar', e?.message ?? 'Inténtalo de nuevo.')
+        Alert.alert('No se pudo completar', errMsg(e, 'Inténtalo de nuevo.'))
       }
     } finally {
       setCargando(false)

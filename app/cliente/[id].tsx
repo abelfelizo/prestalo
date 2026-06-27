@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
+import { errMsg } from '@/lib/errores'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter, useLocalSearchParams } from 'expo-router'
@@ -36,7 +37,7 @@ export default function DetalleCliente() {
         queryClient.invalidateQueries({ queryKey: ['clientes', carteraId] })
         router.back()
       } catch (e: any) {
-        Alert.alert('Error', e.message ?? 'No se pudo eliminar')
+        Alert.alert('Error', errMsg(e, 'No se pudo eliminar'))
       }
     }, 'PIN para eliminar el cliente')
   }

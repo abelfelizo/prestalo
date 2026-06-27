@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { signIn, signUp } from '@/api/auth'
 import { emailValido } from '@/lib/validar'
+import { errMsg } from '@/lib/errores'
 import { color, font, gradient, radius, shadowRaised } from '@/theme'
 
 export default function Login() {
@@ -38,11 +39,7 @@ export default function Login() {
       // Deja que el arranque (index) cargue la sesión y decida lock/onboarding
       router.replace('/')
     } catch (e: any) {
-      const msg: string = e?.message ?? 'No se pudo iniciar sesión'
-      Alert.alert(
-        'Error',
-        /not confirmed/i.test(msg) ? 'Tu correo aún no está confirmado. Revisa tu email.' : msg,
-      )
+      Alert.alert('Error', errMsg(e, 'No se pudo iniciar sesión. Verifica tus datos.'))
     } finally {
       setLoading(false)
     }
