@@ -19,7 +19,7 @@ import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { exigirSuscripcion } from '@/lib/guard'
-import { COLORS } from '@/lib/constants'
+import { color as C, font, radius, shadowCard } from '@/theme'
 import type { Frecuencia, ModeloInteres } from '@/types'
 
 const TIPOS: { tipo: TipoPagoApp; label: string }[] = [
@@ -151,7 +151,7 @@ export default function RegistrarPago() {
   }
 
   if (isLoading || !prestamo || !desglose) {
-    return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
+    return <View style={s.center}><ActivityIndicator color={C.primary} /></View>
   }
 
   const atraso = diasMora(prestamo.fecha_proximo_pago)
@@ -210,27 +210,25 @@ export default function RegistrarPago() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg },
-  title: { fontSize: 26, fontWeight: '800', color: COLORS.primary },
-  cliente: { fontSize: 16, color: COLORS.text, fontWeight: '600', marginTop: 4 },
-  mora: { color: COLORS.danger, fontWeight: '700', marginTop: 6 },
-  label: { fontSize: 12, fontWeight: '700', color: COLORS.textLight, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6, marginTop: 18 },
+  container: { flex: 1, backgroundColor: C.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
+  title: { fontFamily: font.display, fontSize: 24, color: C.ink, letterSpacing: -0.6 },
+  cliente: { fontFamily: font.bodySemi, fontSize: 15, color: C.muted, marginTop: 4 },
+  mora: { fontFamily: font.bodyBold, color: C.danger, marginTop: 6 },
+  label: { fontFamily: font.bodyBold, fontSize: 11, color: C.faint, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginTop: 18 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: COLORS.surface },
-  chipSel: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  chipText: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
+  chip: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: radius.md, backgroundColor: C.surface, ...shadowCard },
+  chipSel: { backgroundColor: C.primary },
+  chipText: { fontFamily: font.bodySemi, fontSize: 13, color: C.ink },
   chipTextSel: { color: '#fff' },
-  input: { backgroundColor: COLORS.surface, borderRadius: 12, padding: 14, fontSize: 15, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
-  hint: { fontSize: 12, color: COLORS.textLight, marginTop: 6 },
-  box: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 16, marginTop: 18 },
+  input: { backgroundColor: C.surface, borderRadius: radius.md, padding: 14, fontFamily: font.body, fontSize: 15, color: C.ink, ...shadowCard },
+  hint: { fontFamily: font.body, fontSize: 12, color: C.muted, marginTop: 6 },
+  box: { backgroundColor: C.surface, borderRadius: radius.xl, padding: 16, marginTop: 18, ...shadowCard },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  rowLabel: { fontSize: 14, color: COLORS.textLight },
-  rowVal: { fontSize: 14, fontWeight: '600', color: COLORS.text },
-  rowTotal: { borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: 8, marginTop: 4 },
-  totalLabel: { fontSize: 15, fontWeight: '800', color: COLORS.text },
-  totalVal: { fontSize: 17, fontWeight: '800', color: COLORS.gold },
-  btn: { backgroundColor: COLORS.success, borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 24 },
-  btnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  cancel: { textAlign: 'center', color: COLORS.textLight, marginTop: 16, fontSize: 14 },
+  rowLabel: { fontFamily: font.body, fontSize: 14, color: C.muted },
+  rowVal: { fontFamily: font.bodySemi, fontSize: 14, color: C.ink, fontVariant: ['tabular-nums'] },
+  rowTotal: { borderTopWidth: 1, borderTopColor: C.line, paddingTop: 8, marginTop: 4 },
+  totalLabel: { fontFamily: font.displaySemi, fontSize: 15, color: C.ink },
+  totalVal: { fontFamily: font.display, fontSize: 18, color: C.primary, fontVariant: ['tabular-nums'] },
+  cancel: { fontFamily: font.bodySemi, textAlign: 'center', color: C.muted, marginTop: 16, fontSize: 14 },
 })

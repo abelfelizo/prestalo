@@ -13,7 +13,7 @@ import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { FotosFirmadas } from '@/components/FotosFirmadas'
 import { usePinPrompt } from '@/store/pinPrompt'
-import { COLORS } from '@/lib/constants'
+import { color as C, font, radius, shadowCard } from '@/theme'
 import type { Frecuencia } from '@/types'
 
 export default function DetallePrestamo() {
@@ -30,7 +30,7 @@ export default function DetallePrestamo() {
   const config = useQuery({ queryKey: ['config', carteraId], queryFn: () => getConfigCartera(carteraId!), enabled: !!carteraId })
 
   if (prestamo.isLoading || !prestamo.data) {
-    return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
+    return <View style={s.center}><ActivityIndicator color={C.primary} /></View>
   }
   const p = prestamo.data
   const activo = p.estado === 'activo' || p.estado === 'en_mora'
@@ -98,9 +98,12 @@ export default function DetallePrestamo() {
 
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
+      <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+        <Feather name="chevron-left" size={20} color={C.ink} />
+      </TouchableOpacity>
       <Text style={s.cliente}>{p.clientes?.nombre ?? 'Cliente'}</Text>
       <View style={[s.pill, p.estado === 'en_mora' && s.pillR, p.estado === 'activo' && s.pillG]}>
-        <Text style={s.pillText}>{p.estado}</Text>
+        <Text style={[s.pillText, p.estado === 'en_mora' && { color: C.danger }, p.estado === 'activo' && { color: C.success }]}>{p.estado}</Text>
       </View>
 
       <View style={s.box}>
@@ -113,7 +116,7 @@ export default function DetallePrestamo() {
       </View>
 
       <View style={s.actions}>
-        <TouchableOpacity style={[s.action, { backgroundColor: COLORS.success }]} onPress={() => router.push(`/pago/${p.id}`)}>
+        <TouchableOpacity style={[s.action, { backgroundColor: C.success }]} onPress={() => router.push(`/pago/${p.id}`)}>
           <Feather name="check-circle" size={16} color="#fff" />
           <Text style={s.actionText}>Registrar pago</Text>
         </TouchableOpacity>
@@ -130,11 +133,11 @@ export default function DetallePrestamo() {
 
       {activo && (
         <View style={s.actions}>
-          <TouchableOpacity style={[s.action, { backgroundColor: COLORS.info }]} onPress={prorrogar}>
+          <TouchableOpacity style={[s.action, { backgroundColor: C.cyan }]} onPress={prorrogar}>
             <Feather name="clock" size={16} color="#fff" />
             <Text style={s.actionText}>Prórroga</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[s.action, { backgroundColor: COLORS.warning }]} onPress={() => router.push(`/prestamo/refinanciar?id=${p.id}`)}>
+          <TouchableOpacity style={[s.action, { backgroundColor: C.warning }]} onPress={() => router.push(`/prestamo/refinanciar?id=${p.id}`)}>
             <Feather name="refresh-cw" size={16} color="#fff" />
             <Text style={s.actionText}>Refinanciar</Text>
           </TouchableOpacity>
@@ -154,10 +157,10 @@ export default function DetallePrestamo() {
       <Text style={s.section}>Calendario de pagos</Text>
       {calendarioPrestamo(p).map((c) => (
         <View key={c.numero} style={[s.cuota, c.pagada && s.cuotaPagada]}>
-          <Feather name={c.pagada ? 'check-circle' : 'clock'} size={16} color={c.pagada ? COLORS.success : COLORS.textLight} />
+          <Feather name={c.pagada ? 'check-circle' : 'clock'} size={16} color={c.pagada ? C.success : C.faint} />
           <Text style={s.cuotaNum}>Cuota {c.numero}</Text>
           <Text style={s.cuotaFecha}>{c.fecha}</Text>
-          <Text style={[s.cuotaMonto, c.pagada && { color: COLORS.textLight, textDecorationLine: 'line-through' }]}>{f(c.monto)}</Text>
+          <Text style={[s.cuotaMonto, c.pagada && { color: C.faint, textDecorationLine: 'line-through' }]}>{f(c.monto)}</Text>
         </View>
       ))}
 
@@ -232,41 +235,40 @@ function Row({ label, val }: { label: string; val: string }) {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg },
-  cliente: { fontSize: 26, fontWeight: '800', color: COLORS.primary },
-  pill: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20, backgroundColor: COLORS.surface, marginTop: 8 },
-  pillR: { backgroundColor: '#ffebee' },
-  pillG: { backgroundColor: '#e8f5e9' },
-  pillText: { fontSize: 12, fontWeight: '700', color: COLORS.text },
-  box: { backgroundColor: COLORS.surface, borderRadius: 14, padding: 16, marginTop: 16 },
+  container: { flex: 1, backgroundColor: C.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
+  backBtn: { width: 38, height: 38, borderRadius: radius.md, backgroundColor: C.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 12, ...shadowCard },
+  cliente: { fontFamily: font.display, fontSize: 24, color: C.ink, letterSpacing: -0.6 },
+  pill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.sm, backgroundColor: C.indigoTint, marginTop: 8 },
+  pillR: { backgroundColor: C.dangerTint },
+  pillG: { backgroundColor: C.successTint },
+  pillText: { fontFamily: font.bodyBold, fontSize: 11, color: C.primary },
+  box: { backgroundColor: C.surface, borderRadius: radius.xl, padding: 16, marginTop: 16, ...shadowCard },
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  rowLabel: { fontSize: 14, color: COLORS.textLight },
-  rowVal: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 16 },
-  action: { flex: 1, borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  actionText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1, marginTop: 26, marginBottom: 10 },
-  cuota: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12, marginBottom: 6 },
-  cuotaPagada: { backgroundColor: COLORS.surface, borderColor: COLORS.surface },
-  cuotaNum: { fontSize: 13, fontWeight: '700', color: COLORS.text, width: 64 },
-  cuotaFecha: { flex: 1, fontSize: 13, color: COLORS.textLight },
-  cuotaMonto: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  item: { backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 12, padding: 12, marginBottom: 8 },
+  rowLabel: { fontFamily: font.body, fontSize: 14, color: C.muted },
+  rowVal: { fontFamily: font.bodyBold, fontSize: 14, color: C.ink, fontVariant: ['tabular-nums'] },
+  actions: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  action: { flex: 1, borderRadius: radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  actionText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 14 },
+  section: { fontFamily: font.displaySemi, fontSize: 14, color: C.ink, marginTop: 26, marginBottom: 12 },
+  cuota: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: C.surface, borderRadius: radius.md, paddingVertical: 11, paddingHorizontal: 13, marginBottom: 7, ...shadowCard },
+  cuotaPagada: { backgroundColor: C.successTint },
+  cuotaNum: { fontFamily: font.bodyBold, fontSize: 13, color: C.ink, width: 64 },
+  cuotaFecha: { flex: 1, fontFamily: font.body, fontSize: 13, color: C.muted },
+  cuotaMonto: { fontFamily: font.displaySemi, fontSize: 14, color: C.ink, fontVariant: ['tabular-nums'] },
+  item: { backgroundColor: C.surface, borderRadius: radius.lg, padding: 13, marginBottom: 8, ...shadowCard },
   itemRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  itemTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  itemSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
-  empty: { color: COLORS.textLight, fontSize: 13 },
-  fotos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
-  foto: { width: 64, height: 64, borderRadius: 8, backgroundColor: COLORS.surface },
-  link: { color: COLORS.info, fontWeight: '600', marginTop: 8, fontSize: 14 },
-  linkSmall: { color: COLORS.info, fontWeight: '600', marginTop: 8, fontSize: 13 },
+  itemTitle: { fontFamily: font.displaySemi, fontSize: 14, color: C.ink },
+  itemSub: { fontFamily: font.body, fontSize: 12, color: C.muted, marginTop: 2 },
+  empty: { fontFamily: font.body, color: C.muted, fontSize: 13 },
+  link: { fontFamily: font.bodySemi, color: C.primary, marginTop: 8, fontSize: 14 },
+  linkSmall: { fontFamily: font.bodySemi, color: C.primary, marginTop: 8, fontSize: 13 },
   gRow: { flexDirection: 'row', gap: 16, marginTop: 8, alignItems: 'center' },
-  anular: { color: COLORS.danger, fontWeight: '600', marginTop: 6, fontSize: 12 },
-  anularHint: { color: '#cfcfcf', fontSize: 10, marginTop: 6 },
-  editLoan: { borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.border, marginTop: 10 },
-  editLoanText: { color: COLORS.text, fontWeight: '700', fontSize: 14 },
-  cancelLoan: { borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1.5, borderColor: COLORS.danger, marginTop: 10 },
-  cancelLoanText: { color: COLORS.danger, fontWeight: '700', fontSize: 14 },
-  cancel: { textAlign: 'center', color: COLORS.textLight, marginTop: 24, fontSize: 14 },
+  anular: { fontFamily: font.bodySemi, color: C.danger, marginTop: 6, fontSize: 12 },
+  anularHint: { fontFamily: font.body, color: C.faint, fontSize: 10, marginTop: 6 },
+  editLoan: { borderRadius: radius.md, padding: 13, alignItems: 'center', backgroundColor: C.surface, marginTop: 10, ...shadowCard },
+  editLoanText: { fontFamily: font.bodyBold, color: C.ink, fontSize: 14 },
+  cancelLoan: { borderRadius: radius.md, padding: 13, alignItems: 'center', backgroundColor: C.dangerTint, borderWidth: 1.5, borderColor: C.danger, marginTop: 10 },
+  cancelLoanText: { fontFamily: font.bodyBold, color: C.danger, fontSize: 14 },
+  cancel: { fontFamily: font.bodySemi, textAlign: 'center', color: C.muted, marginTop: 24, fontSize: 14 },
 })
