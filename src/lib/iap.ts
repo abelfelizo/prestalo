@@ -72,6 +72,12 @@ function diasRestantesPrueba(createdAt: string | null): number {
  */
 export async function sincronizarSuscripcion(createdAt: string | null): Promise<void> {
   const set = useSuscripcion.getState().set
+  // Si el cobro aún no está configurado (sin RevenueCat), NO bloquear: acceso total.
+  // No tiene sentido dejar a alguien en solo-lectura si todavía no hay forma de pagar.
+  if (!RC_API_KEY) {
+    set('activa', 0)
+    return
+  }
   if (await tieneSuscripcionActiva()) {
     set('activa', 0)
     return

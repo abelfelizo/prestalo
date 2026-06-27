@@ -13,6 +13,7 @@ import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
 import { usePinPrompt } from '@/store/pinPrompt'
 import { COLOR_CARTERA } from '@/lib/constants'
+import { useSuscripcion } from '@/store/suscripcion'
 import { color, font, radius, shadowCard, gradient } from '@/theme'
 import type { ColorCartera } from '@/types'
 
@@ -21,6 +22,11 @@ type IconName = keyof typeof Feather.glyphMap
 export default function Ajustes() {
   const router = useRouter()
   const { prestamistaId, carteraActivaId, setCarteraActiva: setActivaLocal, setMoneda, reset } = useSession()
+  const { estado, diasRestantes } = useSuscripcion()
+  const planLabel =
+    estado === 'prueba' ? `Prueba · ${diasRestantes} días`
+    : estado === 'expirada' ? 'Solo lectura'
+    : 'Plan activo'
   const pedirPin = usePinPrompt((s) => s.pedirPin)
   const [emailColab, setEmailColab] = useState('')
 
@@ -113,7 +119,7 @@ export default function Ajustes() {
         <View style={s.profileAvatar}><Feather name="user" size={22} color="#fff" /></View>
         <View style={{ flex: 1 }}>
           <Text style={s.profileName}>Mi cuenta</Text>
-          <Text style={s.profileSub}>Prestamista · Plan Pro</Text>
+          <Text style={s.profileSub}>Prestamista · {planLabel}</Text>
         </View>
       </View>
 
