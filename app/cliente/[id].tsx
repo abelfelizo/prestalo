@@ -61,11 +61,11 @@ export default function DetalleCliente() {
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 40 }}>
         <View style={s.statsCard}>
-          <View style={s.stat}><Text style={s.statVal}>{f(c.total_prestado)}</Text><Text style={s.statLabel}>Prestado</Text></View>
+          <View style={s.stat}><Text style={s.statVal} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{f(c.total_prestado)}</Text><Text style={s.statLabel}>Prestado</Text></View>
           <View style={s.statDivider} />
-          <View style={s.stat}><Text style={s.statVal}>{f(c.total_pagado)}</Text><Text style={s.statLabel}>Pagado</Text></View>
+          <View style={s.stat}><Text style={s.statVal} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{f(c.total_pagado)}</Text><Text style={s.statLabel}>Pagado</Text></View>
           <View style={s.statDivider} />
-          <View style={s.stat}><Text style={s.statVal}>{c.veces_atrasado}</Text><Text style={s.statLabel}>Atrasos</Text></View>
+          <View style={s.stat}><Text style={s.statVal} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>{c.veces_atrasado}</Text><Text style={s.statLabel}>Atrasos</Text></View>
         </View>
 
         {(!!c.cedula || !!c.direccion) && (
