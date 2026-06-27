@@ -10,7 +10,15 @@ import { contarPendientes, flush, contarFallidas, reintentarFallidas } from '@/l
 import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { AvisoSuscripcion } from '@/components/AvisoSuscripcion'
-import { COLORS, GRADIENTS } from '@/lib/constants'
+import { color, font, type as t, radius, space, shadowCard, shadowRaised, gradient } from '@/theme'
+
+type Estado = 'activo' | 'en_mora' | string
+
+function tinte(estado: Estado) {
+  if (estado === 'en_mora') return { bg: color.dangerTint, fg: color.danger, label: 'Mora' }
+  if (estado === 'activo') return { bg: color.successTint, fg: color.success, label: 'Al día' }
+  return { bg: color.indigoTint, fg: color.primary, label: estado }
+}
 
 export default function Dashboard() {
   const router = useRouter()
@@ -23,29 +31,10 @@ export default function Dashboard() {
     queryFn: () => contarNoLeidas(prestamistaId!),
     enabled: !!prestamistaId,
   })
-
-  const pendientes = useQuery({
-    queryKey: ['outbox-count'],
-    queryFn: contarPendientes,
-    refetchInterval: 8000,
-  })
-
-  const fallidas = useQuery({
-    queryKey: ['outbox-fallidas'],
-    queryFn: contarFallidas,
-    refetchInterval: 8000,
-  })
-
-  const metricas = useQuery({
-    queryKey: ['metricas', carteraId],
-    queryFn: () => getMetricas(carteraId!),
-    enabled: !!carteraId,
-  })
-  const cobros = useQuery({
-    queryKey: ['cobros-hoy', carteraId],
-    queryFn: () => getProximosCobros(carteraId!, 7),
-    enabled: !!carteraId,
-  })
+  const pendientes = useQuery({ queryKey: ['outbox-count'], queryFn: contarPendientes, refetchInterval: 8000 })
+  const fallidas = useQuery({ queryKey: ['outbox-fallidas'], queryFn: contarFallidas, refetchInterval: 8000 })
+  const metricas = useQuery({ queryKey: ['metricas', carteraId], queryFn: () => getMetricas(carteraId!), enabled: !!carteraId })
+  const cobros = useQuery({ queryKey: ['cobros-hoy', carteraId], queryFn: () => getProximosCobros(carteraId!, 7), enabled: !!carteraId })
 
   const loading = metricas.isLoading || cobros.isLoading
   const refreshing = metricas.isRefetching || cobros.isRefetching
@@ -63,9 +52,8 @@ export default function Dashboard() {
       </View>
     )
   }
-
   if (loading) {
-    return <View style={s.center}><ActivityIndicator color={COLORS.primary} size="large" /></View>
+    return <View style={s.center}><ActivityIndicator color={color.primary} size="large" /></View>
   }
 
   const m = metricas.data
@@ -74,13 +62,16 @@ export default function Dashboard() {
   return (
     <ScrollView
       style={s.container}
-      contentContainerStyle={{ padding: 16, paddingTop: 56, paddingBottom: 110 }}
+      contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 56, paddingBottom: 110 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refrescar} />}
     >
       <View style={s.titleRow}>
-        <Text style={s.title}>Kuotas</Text>
+        <View>
+          <Text style={s.greet}>Tu cartera</Text>
+          <Text style={s.title}>Inicio</Text>
+        </View>
         <TouchableOpacity onPress={() => router.push('/alertas')} style={s.bell}>
-          <Feather name="bell" size={22} color={COLORS.text} />
+          <Feather name="bell" size={20} color={color.ink} />
           {!!noLeidas.data && (
             <View style={s.badge}><Text style={s.badgeText}>{noLeidas.data > 9 ? '9+' : noLeidas.data}</Text></View>
           )}
@@ -90,35 +81,30 @@ export default function Dashboard() {
       <AvisoSuscripcion />
 
       {!!pendientes.data && pendientes.data > 0 && (
-        <TouchableOpacity
-          style={s.pend}
-          onPress={() => flush().then(() => { pendientes.refetch(); cobros.refetch(); metricas.refetch() })}
-        >
+        <TouchableOpacity style={s.pend} onPress={() => flush().then(() => { pendientes.refetch(); cobros.refetch(); metricas.refetch() })}>
           <Text style={s.pendText}>↻ {pendientes.data} pendiente(s) de sincronizar — toca para reintentar</Text>
         </TouchableOpacity>
       )}
-
       {!!fallidas.data && fallidas.data > 0 && (
         <TouchableOpacity
           style={s.fail}
-          onPress={() =>
-            reintentarFallidas()
-              .then(() => flush())
-              .then(() => { fallidas.refetch(); pendientes.refetch(); cobros.refetch(); metricas.refetch() })
-          }
+          onPress={() => reintentarFallidas().then(() => flush()).then(() => { fallidas.refetch(); pendientes.refetch(); cobros.refetch(); metricas.refetch() })}
         >
           <Text style={s.failText}>⚠️ {fallidas.data} operación(es) no se guardaron — toca para reintentar</Text>
         </TouchableOpacity>
       )}
 
-      <LinearGradient colors={GRADIENTS.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.hero}>
+      {/* Hero */}
+      <View style={s.hero}>
+        <LinearGradient colors={gradient.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={[color.violet, 'transparent']} start={{ x: 1, y: 0 }} end={{ x: 0.2, y: 0.8 }} style={[StyleSheet.absoluteFill, { opacity: 0.5 }]} />
         <Text style={s.heroLabel}>Capital en la calle</Text>
         <Text style={s.heroMonto}>{f(m?.capital_en_calle ?? 0)}</Text>
         <View style={s.heroFoot}>
-          <Feather name="users" size={13} color="rgba(255,255,255,0.85)" />
+          <Feather name="users" size={13} color="rgba(255,255,255,0.9)" />
           <Text style={s.heroSub}>{m?.clientes_activos ?? 0} clientes activos</Text>
         </View>
-      </LinearGradient>
+      </View>
 
       <View style={s.grid}>
         <View style={s.met}>
@@ -127,7 +113,7 @@ export default function Dashboard() {
         </View>
         <View style={s.met}>
           <Text style={s.metLabel}>En mora</Text>
-          <Text style={[s.metVal, { color: COLORS.danger }]}>{m?.prestamos_en_mora ?? 0}</Text>
+          <Text style={[s.metVal, { color: color.danger }]}>{m?.prestamos_en_mora ?? 0} préstamos</Text>
         </View>
       </View>
 
@@ -135,74 +121,79 @@ export default function Dashboard() {
         <Text style={s.section}>Próximos cobros (7 días)</Text>
         {lista.length > 0 && (
           <TouchableOpacity style={s.recordarRow} onPress={() => router.push('/recordatorios')}>
-            <Feather name="message-circle" size={14} color="#25D366" />
+            <Feather name="message-circle" size={14} color={color.whatsapp} />
             <Text style={s.recordar}>Recordar</Text>
           </TouchableOpacity>
         )}
       </View>
+
       {lista.length === 0 ? (
         <View style={s.emptyBox}>
-          <Feather name="check-circle" size={40} color={COLORS.success} />
+          <Feather name="check-circle" size={40} color={color.success} />
           <Text style={s.emptyTitle}>Sin cobros próximos</Text>
         </View>
       ) : (
-        lista.map((p) => (
-          <TouchableOpacity key={p.id} style={s.card} onPress={() => router.push(`/pago/${p.id}`)}>
-            <View style={s.cardLeft}>
-              <View style={s.avatar}><Text style={s.avatarText}>{(p.clientes?.nombre || 'XX').slice(0, 2).toUpperCase()}</Text></View>
-              <View>
-                <Text style={s.clienteNombre}>{p.clientes?.nombre || 'Cliente'}</Text>
-                <Text style={s.clienteSub}>Vence {p.fecha_proximo_pago} · {f(p.saldo_pendiente)}</Text>
+        lista.map((p) => {
+          const c = tinte(p.estado)
+          return (
+            <TouchableOpacity key={p.id} style={s.card} onPress={() => router.push(`/pago/${p.id}`)} activeOpacity={0.85}>
+              <View style={s.cardLeft}>
+                <View style={[s.avatar, { backgroundColor: c.bg }]}>
+                  <Text style={[s.avatarText, { color: c.fg }]}>{(p.clientes?.nombre || 'XX').slice(0, 2).toUpperCase()}</Text>
+                </View>
+                <View>
+                  <Text style={s.clienteNombre}>{p.clientes?.nombre || 'Cliente'}</Text>
+                  <Text style={s.clienteSub}>Vence {p.fecha_proximo_pago} · {f(p.saldo_pendiente)}</Text>
+                </View>
               </View>
-            </View>
-            <View style={[s.pill, p.estado === 'en_mora' && s.pillR, p.estado === 'activo' && s.pillG]}>
-              <Text style={[s.pillText, p.estado === 'en_mora' && { color: COLORS.danger }, p.estado === 'activo' && { color: COLORS.success }]}>{p.estado}</Text>
-            </View>
-          </TouchableOpacity>
-        ))
+              <View style={[s.pill, { backgroundColor: c.bg }]}>
+                <View style={[s.dot, { backgroundColor: c.fg }]} />
+                <Text style={[s.pillText, { color: c.fg }]}>{c.label}</Text>
+              </View>
+            </TouchableOpacity>
+          )
+        })
       )}
     </ScrollView>
   )
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg },
-  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
-  bell: { padding: 4 },
-  bellIcon: { fontSize: 24 },
-  badge: { position: 'absolute', top: 0, right: 0, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
-  pend: { backgroundColor: '#fff4e5', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: COLORS.warning },
-  pendText: { color: COLORS.warning, fontWeight: '700', fontSize: 13, textAlign: 'center' },
-  fail: { backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: COLORS.danger },
-  failText: { color: COLORS.danger, fontWeight: '700', fontSize: 13, textAlign: 'center' },
-  hero: { borderRadius: 22, padding: 24, marginBottom: 14, alignItems: 'center', overflow: 'hidden' },
-  heroLabel: { fontSize: 13, color: 'rgba(255,255,255,0.85)', marginBottom: 6, fontWeight: '600' },
-  heroMonto: { fontSize: 38, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
-  heroFoot: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
-  heroSub: { fontSize: 12.5, color: 'rgba(255,255,255,0.85)' },
-  grid: { flexDirection: 'row', gap: 10, marginBottom: 24 },
-  met: { flex: 1, backgroundColor: COLORS.bg, borderRadius: 16, padding: 15, borderWidth: 1, borderColor: COLORS.border },
-  metLabel: { fontSize: 11.5, color: COLORS.textLight, marginBottom: 6, fontWeight: '600' },
-  metVal: { fontSize: 19, fontWeight: '800', color: COLORS.text },
-  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  section: { fontSize: 11, fontWeight: '700', color: '#ccc', textTransform: 'uppercase', letterSpacing: 1 },
+  container: { flex: 1, backgroundColor: color.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+  greet: { fontFamily: font.body, fontSize: 13, color: color.muted },
+  title: { fontFamily: font.display, fontSize: 24, color: color.ink, letterSpacing: -0.6, marginTop: 2 },
+  bell: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: color.surface, alignItems: 'center', justifyContent: 'center', ...shadowCard },
+  badge: { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: color.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  badgeText: { color: '#fff', fontSize: 9, fontFamily: font.bodyBold },
+  pend: { backgroundColor: color.warningTint, borderRadius: radius.md, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: color.warning },
+  pendText: { color: color.warning, fontFamily: font.bodyBold, fontSize: 13, textAlign: 'center' },
+  fail: { backgroundColor: color.dangerTint, borderRadius: radius.md, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: color.danger },
+  failText: { color: color.danger, fontFamily: font.bodyBold, fontSize: 13, textAlign: 'center' },
+  hero: { borderRadius: radius.card, padding: 24, marginBottom: 14, overflow: 'hidden', ...shadowRaised },
+  heroLabel: { fontFamily: font.bodySemi, fontSize: 13, color: 'rgba(255,255,255,0.85)', marginBottom: 8 },
+  heroMonto: { fontFamily: font.display, fontSize: 34, color: '#fff', letterSpacing: -1, fontVariant: ['tabular-nums'] },
+  heroFoot: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 },
+  heroSub: { fontFamily: font.bodySemi, fontSize: 12.5, color: 'rgba(255,255,255,0.9)' },
+  grid: { flexDirection: 'row', gap: 10, marginBottom: 22 },
+  met: { flex: 1, backgroundColor: color.surface, borderRadius: radius.xl, padding: 15, ...shadowCard },
+  metLabel: { fontFamily: font.bodySemi, fontSize: 11.5, color: color.muted, marginBottom: 6 },
+  metVal: { fontFamily: font.displaySemi, fontSize: 18, color: color.ink, fontVariant: ['tabular-nums'] },
+  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  section: { fontFamily: font.displaySemi, fontSize: 14, color: color.ink },
   recordarRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  recordar: { color: '#25D366', fontWeight: '700', fontSize: 13 },
-  card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 14, padding: 14, marginBottom: 8 },
+  recordar: { color: color.whatsapp, fontFamily: font.bodyBold, fontSize: 13 },
+  card: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: color.surface, borderRadius: radius.xl, padding: 13, marginBottom: 10, ...shadowCard },
   cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#E0E7FF', alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 14, fontWeight: '700', color: COLORS.primary },
-  clienteNombre: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  clienteSub: { fontSize: 12, color: COLORS.textLight, marginTop: 2 },
-  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: COLORS.surface },
-  pillR: { backgroundColor: '#ffebee' },
-  pillG: { backgroundColor: '#e8f5e9' },
-  pillText: { fontSize: 11, fontWeight: '700', color: COLORS.textLight },
-  emptyBox: { alignItems: 'center', paddingVertical: 30 },
-  emptyEmoji: { fontSize: 44, marginBottom: 10 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  emptySub: { fontSize: 13, color: COLORS.textLight, textAlign: 'center', marginTop: 4 },
+  avatar: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontFamily: font.displaySemi, fontSize: 13 },
+  clienteNombre: { fontFamily: font.bodyBold, fontSize: 14, color: color.ink },
+  clienteSub: { fontFamily: font.body, fontSize: 12, color: color.muted, marginTop: 2 },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.sm },
+  dot: { width: 5, height: 5, borderRadius: 3 },
+  pillText: { fontFamily: font.bodyBold, fontSize: 10 },
+  emptyBox: { alignItems: 'center', paddingVertical: 30, gap: 10 },
+  emptyTitle: { fontFamily: font.displaySemi, fontSize: 16, color: color.ink },
+  emptySub: { fontFamily: font.body, fontSize: 13, color: color.muted, textAlign: 'center', marginTop: 4 },
 })
