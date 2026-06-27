@@ -7,6 +7,33 @@ const DIAS_POR_FRECUENCIA: Record<Frecuencia, number> = {
   mensual: 30,
 }
 
+/** Factor de prorrateo del período respecto al mes (base de la tasa mensual). */
+function factorPeriodo(frecuencia: Frecuencia): number {
+  return (DIAS_POR_FRECUENCIA[frecuencia] ?? 30) / 30
+}
+
+/**
+ * Interés de UNA cuota. Fuente única de verdad de la fórmula de interés
+ * (la usan el cálculo total, el calendario y el interés de la próxima cuota).
+ * - flat: interés total repartido en partes iguales = capital·tasa / nº cuotas.
+ * - sobre_saldo: tasa mensual prorrateada sobre el capital que aún queda.
+ * `cuotasPagadas` = nº de cuotas de capital ya abonadas antes de esta (0 para la primera).
+ */
+export function interesDeCuota(
+  capital: number,
+  tasa: number,
+  modelo: ModeloInteres,
+  numCuotas: number,
+  frecuencia: Frecuencia,
+  cuotasPagadas: number,
+): number {
+  if (numCuotas <= 0) return 0
+  if (modelo === 'flat') return (capital * (tasa / 100)) / numCuotas
+  const abonoCapital = capital / numCuotas
+  const capitalRestante = Math.max(capital - cuotasPagadas * abonoCapital, 0)
+  return capitalRestante * (tasa / 100) * factorPeriodo(frecuencia)
+}
+
 export interface ResumenPrestamo {
   montoTotal: number // capital + intereses (= saldo_pendiente inicial)
   interesTotal: number
@@ -27,20 +54,10 @@ export function calcularPrestamo(
 ): ResumenPrestamo {
   if (numCuotas <= 0) return { montoTotal: capital, interesTotal: 0, cuota: capital }
 
-  if (modelo === 'flat') {
-    const interesTotal = capital * (tasa / 100) // total, una sola vez
-    const montoTotal = capital + interesTotal
-    return { montoTotal, interesTotal, cuota: montoTotal / numCuotas }
-  }
-
-  // sobre_saldo: tasa mensual prorrateada al período, sobre el saldo decreciente
-  const factor = DIAS_POR_FRECUENCIA[frecuencia] / 30
-  const abonoCapital = capital / numCuotas
-  let saldo = capital
+  // Suma del interés de cada cuota (misma fórmula que el calendario y la próxima cuota).
   let interesTotal = 0
   for (let i = 0; i < numCuotas; i++) {
-    interesTotal += saldo * (tasa / 100) * factor
-    saldo -= abonoCapital
+    interesTotal += interesDeCuota(capital, tasa, modelo, numCuotas, frecuencia, i)
   }
   const montoTotal = capital + interesTotal
   return { montoTotal, interesTotal, cuota: montoTotal / numCuotas }
@@ -110,17 +127,15 @@ export function calendarioPrestamo(p: {
   const n = p.num_cuotas
   const tasa = Number(p.tasa_interes)
   const frecuencia = p.frecuencia_cobro as Frecuencia
+  const modelo = p.modelo_interes as ModeloInteres
   const capCuota = n > 0 ? capital / n : capital
-  const factor = (DIAS_POR_FRECUENCIA[frecuencia] ?? 30) / 30
   const base = new Date(p.fecha_inicio)
   const out: ItemCalendario[] = []
   for (let i = 1; i <= n; i++) {
     const d = new Date(base)
     if (frecuencia === 'mensual') d.setMonth(d.getMonth() + i)
     else d.setDate(d.getDate() + (DIAS_POR_FRECUENCIA[frecuencia] ?? 30) * i)
-    let interes: number
-    if (p.modelo_interes === 'flat') interes = (capital * (tasa / 100)) / n
-    else interes = Math.max(capital - (i - 1) * capCuota, 0) * (tasa / 100) * factor
+    const interes = interesDeCuota(capital, tasa, modelo, n, frecuencia, i - 1)
     out.push({ numero: i, fecha: d.toISOString().slice(0, 10), monto: capCuota + interes, pagada: i <= p.cuotas_pagadas })
   }
   return out
@@ -146,12 +161,7 @@ export function capitalDeCuota(capital: number, numCuotas: number): number {
  * - sobre_saldo: tasa mensual prorrateada sobre el CAPITAL restante (decrece cada cuota).
  */
 export function interesDeProximaCuota(d: DatosCuota): number {
-  if (d.numCuotas <= 0) return 0
-  if (d.modelo === 'flat') return (d.capital * (d.tasa / 100)) / d.numCuotas
-  const factor = DIAS_POR_FRECUENCIA[d.frecuencia] / 30
-  const abono = d.capital / d.numCuotas
-  const capitalRestante = Math.max(d.capital - d.cuotasPagadas * abono, 0)
-  return capitalRestante * (d.tasa / 100) * factor
+  return interesDeCuota(d.capital, d.tasa, d.modelo, d.numCuotas, d.frecuencia, d.cuotasPagadas)
 }
 
 /**

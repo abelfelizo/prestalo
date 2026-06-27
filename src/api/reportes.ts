@@ -18,10 +18,12 @@ export async function getReporte(carteraId: string): Promise<Reporte> {
     .is('deleted_at', null)
   if (error) throw error
 
-  const { data: caja } = await supabase
+  const { data: caja, error: cajaError } = await supabase
     .from('caja')
     .select('monto, categoria, tipo')
     .eq('cartera_id', carteraId)
+    .is('deleted_at', null)
+  if (cajaError) throw cajaError
 
   const rows = prestamos ?? []
   const cobrado = (caja ?? [])

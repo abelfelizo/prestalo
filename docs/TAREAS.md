@@ -26,19 +26,19 @@ Prioridad: 🔴 bloqueante antes de cobrar · 🟠 importante · 🟢 mejora/nov
 
 ## 🟠 Correcciones de calidad (rápidas, bajo riesgo)
 
-- [ ] **Reporte suma caja borrada** — filtrar `deleted_at` en la consulta de caja
-      (`src/api/reportes.ts:21-24`). 1 línea. **[Claude]**
-- [ ] **No ignorar el error** de la consulta de caja en `getReporte`. **[Claude]**
-- [ ] **Unificar la fórmula de interés** en una sola función reutilizada por preview y calendario
-      (`src/lib/calculos.ts`). **[Claude]**
-- [ ] **`capital_inicial` de la cartera** debe registrarse como entrada de caja al crearla. **[Claude]**
-- [ ] **Cifrar la caché local** (datos sensibles a expo-secure-store en vez de AsyncStorage). **[Claude]**
-- [ ] **Formato de montos en WhatsApp** — usar `fmt` (con decimales/moneda) en `whatsapp.ts` y quitar
-      el `RD$` fijo en `heredero-acceso.tsx:34`. **[Claude]**
+- [x] **Reporte suma caja borrada** — `getReporte` ahora filtra `deleted_at` y propaga el error. **[Claude] ✓**
+- [x] **No ignorar el error** de la consulta de caja en `getReporte`. **[Claude] ✓**
+- [x] **Unificar la fórmula de interés** — nueva `interesDeCuota` usada por cálculo total, calendario
+      y próxima cuota (`src/lib/calculos.ts`). **[Claude] ✓**
+- [x] **`capital_inicial` de la cartera** se registra como entrada de caja al crearla. **[Claude] ✓**
+- [x] **Formato de montos en WhatsApp** — `whatsapp.ts` usa `fmt`. **[Claude] ✓**
+- [x] **Subir el mínimo de la clave de heredero** (ahora 6 caracteres). **[Claude] ✓**
+- [ ] **Cifrar la caché local** — requiere dependencia con cifrado simétrico (ej. react-native-mmkv
+      con encryptionKey) + clave en SecureStore; NO es de una línea. Pendiente como tarea propia. **[Claude]**
+- [ ] **Integrar Sentry / crash reporting** — requiere DSN **[Tú]** + rebuild nativo. **[Claude]**
+- [ ] **Mover agregaciones a SQL** (dashboard/reportes/balance) — cambio mayor, mejor con tests. **[Claude]**
 - [ ] **Activar protección de contraseñas filtradas** (Supabase Auth). **[Tú]**
-- [ ] **Subir el mínimo de la clave de heredero** (hoy 4 caracteres). **[Claude]**
-- [ ] **Integrar Sentry / crash reporting** (ya hay enganche en `ErrorBoundary.tsx:20`). **[Claude]** + key **[Tú]**
-- [ ] **Mover agregaciones a SQL** (dashboard/reportes/balance hoy se suman en el cliente). **[Claude]**
+- [ ] **Tests de la nueva lógica** (idempotencia, `interesDeCuota`, cola offline). **[Claude]**
 
 ## 🟢 Novedades / producto (mediano plazo)
 

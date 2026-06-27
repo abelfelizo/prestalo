@@ -4,6 +4,17 @@ import type { Cartera, Inserts, Prestamista } from '@/types'
 export async function crearCartera(input: Inserts<'carteras'>): Promise<Cartera> {
   const { data, error } = await supabase.from('carteras').insert(input).select().single()
   if (error) throw error
+  // El capital inicial debe reflejarse en el balance de caja como una entrada.
+  if (input.capital_inicial && input.capital_inicial > 0) {
+    await supabase.from('caja').insert({
+      cartera_id: data.id,
+      tipo: 'entrada',
+      categoria: 'capital_nuevo',
+      monto: input.capital_inicial,
+      descripcion: 'Capital inicial de la cartera',
+      fecha: new Date().toISOString().slice(0, 10),
+    })
+  }
   return data
 }
 

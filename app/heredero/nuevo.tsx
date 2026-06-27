@@ -42,7 +42,7 @@ export default function NuevoHeredero() {
   function guardar() {
     if (!nombre.trim()) return Alert.alert('Falta el nombre')
     if (!telefonoValido(telefono)) return Alert.alert('Teléfono inválido', 'Debe tener entre 7 y 15 dígitos.')
-    if (clave.length < 4) return Alert.alert('Clave muy corta', 'Mínimo 4 caracteres')
+    if (clave.length < 6) return Alert.alert('Clave muy corta', 'Mínimo 6 caracteres')
     mut.mutate()
   }
 
