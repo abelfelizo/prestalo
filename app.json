@@ -6,6 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "runtimeVersion": { "policy": "appVersion" },
+    "updates": {
+      "url": "https://u.expo.dev/9353b2bf-a96f-4a54-9e57-f2b81e285878"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -27,6 +31,9 @@
       "expo-secure-store",
       "expo-notifications"
     ],
-    "scheme": "kuotas"
+    "scheme": "kuotas",
+    "extra": {
+      "eas": { "projectId": "9353b2bf-a96f-4a54-9e57-f2b81e285878" }
+    }
   }
 }

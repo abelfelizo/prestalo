@@ -17,6 +17,7 @@
     "android-apk": {
       "distribution": "internal",
       "autoIncrement": true,
+      "channel": "production",
       "android": { "buildType": "apk" },
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://pphnaasmirbnuilgzfeo.supabase.co",

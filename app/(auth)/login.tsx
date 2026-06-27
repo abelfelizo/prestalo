@@ -16,8 +16,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
 
   async function submit() {
-    if (!emailValido(email) || password.length < 6) {
-      Alert.alert('Datos incompletos', 'Ingresa un email válido y una contraseña de al menos 6 caracteres.')
+    if (!emailValido(email) || (modo === 'crear' && password.length < 8) || password.length < 6) {
+      Alert.alert(
+        'Datos incompletos',
+        modo === 'crear'
+          ? 'Ingresa un email válido y una contraseña de al menos 8 caracteres.'
+          : 'Ingresa un email válido y tu contraseña.',
+      )
       return
     }
     setLoading(true)
