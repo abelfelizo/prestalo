@@ -13,7 +13,8 @@ import { useSession } from '@/store/session'
 import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { usePinPrompt } from '@/store/pinPrompt'
-import { color as C, font, radius, shadowCard } from '@/theme'
+import { LinearGradient } from 'expo-linear-gradient'
+import { color as C, font, radius, shadowCard, shadowRaised, gradient } from '@/theme'
 import type { Frecuencia } from '@/types'
 
 export default function DetallePrestamo() {
@@ -115,52 +116,57 @@ export default function DetallePrestamo() {
         {p.dias_en_mora > 0 && <Row label="Días en mora" val={String(p.dias_en_mora)} />}
       </View>
 
-      <View style={s.actions}>
-        <TouchableOpacity style={[s.action, { backgroundColor: C.success }]} onPress={() => router.push(`/pago/${p.id}`)}>
-          <Feather name="check-circle" size={16} color="#fff" />
-          <Text style={s.actionText}>Registrar pago</Text>
-        </TouchableOpacity>
+      <TouchableOpacity activeOpacity={0.9} onPress={() => router.push(`/pago/${p.id}`)} style={s.primaryWrap}>
+        <LinearGradient colors={gradient.buttonSuccess} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.primaryBtn}>
+          <Feather name="check-circle" size={18} color="#fff" />
+          <Text style={s.primaryText}>Registrar pago</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+
+      <View style={s.tiles}>
         {!!p.clientes?.telefono && (
-          <TouchableOpacity
-            style={[s.action, { backgroundColor: '#25D366' }]}
-            onPress={() => cobrarPorWhatsApp(p.clientes!.telefono!, p.clientes!.nombre, Number(p.saldo_pendiente), moneda, config.data?.mensaje_mora_whatsapp)}
-          >
-            <Feather name="message-circle" size={16} color="#fff" />
-            <Text style={s.actionText}>Cobrar</Text>
+          <TouchableOpacity style={s.tile} activeOpacity={0.8} onPress={() => cobrarPorWhatsApp(p.clientes!.telefono!, p.clientes!.nombre, Number(p.saldo_pendiente), moneda, config.data?.mensaje_mora_whatsapp)}>
+            <View style={[s.tileIcon, { backgroundColor: '#E7F9EF' }]}><Feather name="message-circle" size={18} color={C.whatsapp} /></View>
+            <Text style={s.tileText}>Cobrar</Text>
+          </TouchableOpacity>
+        )}
+        {activo && (
+          <TouchableOpacity style={s.tile} activeOpacity={0.8} onPress={prorrogar}>
+            <View style={s.tileIcon}><Feather name="clock" size={18} color={C.primary} /></View>
+            <Text style={s.tileText}>Prórroga</Text>
+          </TouchableOpacity>
+        )}
+        {activo && (
+          <TouchableOpacity style={s.tile} activeOpacity={0.8} onPress={() => router.push(`/prestamo/refinanciar?id=${p.id}`)}>
+            <View style={s.tileIcon}><Feather name="refresh-cw" size={18} color={C.primary} /></View>
+            <Text style={s.tileText}>Refinanciar</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      {activo && (
-        <View style={s.actions}>
-          <TouchableOpacity style={[s.action, { backgroundColor: C.cyan }]} onPress={prorrogar}>
-            <Feather name="clock" size={16} color="#fff" />
-            <Text style={s.actionText}>Prórroga</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[s.action, { backgroundColor: C.warning }]} onPress={() => router.push(`/prestamo/refinanciar?id=${p.id}`)}>
-            <Feather name="refresh-cw" size={16} color="#fff" />
-            <Text style={s.actionText}>Refinanciar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
       {activo && p.cuotas_pagadas === 0 && (
-        <TouchableOpacity style={s.editLoan} onPress={() => router.push(`/prestamo/nuevo?id=${p.id}`)}>
-          <Text style={s.editLoanText}>✏️ Editar préstamo</Text>
+        <TouchableOpacity style={s.ghost} onPress={() => router.push(`/prestamo/nuevo?id=${p.id}`)} activeOpacity={0.8}>
+          <Feather name="edit-2" size={15} color={C.ink} />
+          <Text style={s.ghostText}>Editar préstamo</Text>
         </TouchableOpacity>
       )}
       {activo && (
-        <TouchableOpacity style={s.cancelLoan} onPress={cancelar}>
-          <Text style={s.cancelLoanText}>Cancelar préstamo</Text>
+        <TouchableOpacity style={s.ghostDanger} onPress={cancelar} activeOpacity={0.8}>
+          <Text style={s.ghostDangerText}>Cancelar préstamo</Text>
         </TouchableOpacity>
       )}
 
       <Text style={s.section}>Calendario de pagos</Text>
       {calendarioPrestamo(p).map((c) => (
-        <View key={c.numero} style={[s.cuota, c.pagada && s.cuotaPagada]}>
-          <Feather name={c.pagada ? 'check-circle' : 'clock'} size={16} color={c.pagada ? C.success : C.faint} />
-          <Text style={s.cuotaNum}>Cuota {c.numero}</Text>
-          <Text style={s.cuotaFecha}>{c.fecha}</Text>
-          <Text style={[s.cuotaMonto, c.pagada && { color: C.faint, textDecorationLine: 'line-through' }]}>{f(c.monto)}</Text>
+        <View key={c.numero} style={s.cuota}>
+          <View style={[s.cuotaIcon, { backgroundColor: c.pagada ? C.successTint : C.indigoTint }]}>
+            {c.pagada ? <Feather name="check" size={15} color={C.success} /> : <Text style={s.cuotaNumIcon}>{c.numero}</Text>}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.cuotaTitle}>Cuota {c.numero}</Text>
+            <Text style={s.cuotaFecha}>{c.fecha}</Text>
+          </View>
+          <Text style={[s.cuotaMonto, c.pagada && s.cuotaMontoPagada]}>{f(c.monto)}</Text>
         </View>
       ))}
 
@@ -246,15 +252,25 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   rowLabel: { fontFamily: font.body, fontSize: 14, color: C.muted },
   rowVal: { fontFamily: font.bodyBold, fontSize: 14, color: C.ink, fontVariant: ['tabular-nums'] },
-  actions: { flexDirection: 'row', gap: 10, marginTop: 14 },
-  action: { flex: 1, borderRadius: radius.md, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  actionText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 14 },
+  primaryWrap: { marginTop: 16, ...shadowRaised },
+  primaryBtn: { borderRadius: radius.lg, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  primaryText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 15 },
+  tiles: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  tile: { flex: 1, backgroundColor: C.surface, borderRadius: radius.lg, paddingVertical: 14, alignItems: 'center', gap: 8, ...shadowCard },
+  tileIcon: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.indigoTint, alignItems: 'center', justifyContent: 'center' },
+  tileText: { fontFamily: font.bodySemi, fontSize: 12.5, color: C.ink },
+  ghost: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: C.surface, borderRadius: radius.md, padding: 13, marginTop: 12, ...shadowCard },
+  ghostText: { fontFamily: font.bodyBold, color: C.ink, fontSize: 14 },
+  ghostDanger: { alignItems: 'center', justifyContent: 'center', backgroundColor: C.dangerTint, borderRadius: radius.md, padding: 13, marginTop: 10 },
+  ghostDangerText: { fontFamily: font.bodyBold, color: C.danger, fontSize: 14 },
   section: { fontFamily: font.displaySemi, fontSize: 14, color: C.ink, marginTop: 26, marginBottom: 12 },
-  cuota: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: C.surface, borderRadius: radius.md, paddingVertical: 11, paddingHorizontal: 13, marginBottom: 7, ...shadowCard },
-  cuotaPagada: { backgroundColor: C.successTint },
-  cuotaNum: { fontFamily: font.bodyBold, fontSize: 13, color: C.ink, width: 64 },
-  cuotaFecha: { flex: 1, fontFamily: font.body, fontSize: 13, color: C.muted },
+  cuota: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surface, borderRadius: radius.lg, paddingVertical: 12, paddingHorizontal: 13, marginBottom: 8, ...shadowCard },
+  cuotaIcon: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  cuotaNumIcon: { fontFamily: font.bodyBold, fontSize: 13, color: C.primary },
+  cuotaTitle: { fontFamily: font.bodyBold, fontSize: 14, color: C.ink },
+  cuotaFecha: { fontFamily: font.body, fontSize: 12, color: C.muted, marginTop: 2 },
   cuotaMonto: { fontFamily: font.displaySemi, fontSize: 14, color: C.ink, fontVariant: ['tabular-nums'] },
+  cuotaMontoPagada: { color: C.faint, textDecorationLine: 'line-through' },
   item: { backgroundColor: C.surface, borderRadius: radius.lg, padding: 13, marginBottom: 8, ...shadowCard },
   itemRow: { flexDirection: 'row', justifyContent: 'space-between' },
   itemTitle: { fontFamily: font.displaySemi, fontSize: 14, color: C.ink },

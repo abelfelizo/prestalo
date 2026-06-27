@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useQuery } from '@tanstack/react-query'
@@ -31,31 +31,13 @@ export default function Dashboard() {
   const setMoneda = useSession((s) => s.setMoneda)
 
   const carteras = useQuery({ queryKey: ['carteras-accesibles'], queryFn: getCarterasAccesibles })
-  const carteraActiva = (carteras.data ?? []).find((c) => c.id === carteraId)
 
-  function cambiarCartera() {
-    const lista = carteras.data ?? []
-    if (lista.length <= 1) {
-      Alert.alert('Solo tienes una cartera', 'Crea otra desde Ajustes → Nueva cartera.')
-      return
-    }
-    Alert.alert(
-      'Cambiar cartera',
-      'Elige la cartera que quieres ver',
-      [
-        ...lista.map((c) => ({
-          text: `${c.nombre}${c.id === carteraId ? ' ✓' : ''}`,
-          onPress: async () => {
-            if (c.id === carteraId) return
-            if (prestamistaId) await setCarteraActivaApi(prestamistaId, c.id).catch(() => {})
-            setCarteraActivaLocal(c.id)
-            setMoneda(c.moneda)
-            queryClient.invalidateQueries()
-          },
-        })),
-        { text: 'Cancelar', style: 'cancel' as const },
-      ],
-    )
+  async function seleccionarCartera(c: { id: string; moneda: string }) {
+    if (c.id === carteraId) return
+    if (prestamistaId) await setCarteraActivaApi(prestamistaId, c.id).catch(() => {})
+    setCarteraActivaLocal(c.id)
+    setMoneda(c.moneda)
+    queryClient.invalidateQueries()
   }
 
   const noLeidas = useQuery({
@@ -98,14 +80,7 @@ export default function Dashboard() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refrescar} />}
     >
       <View style={s.titleRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.title}>Inicio</Text>
-          <TouchableOpacity style={s.carteraChip} onPress={cambiarCartera} activeOpacity={0.7}>
-            <Feather name="folder" size={13} color={color.primary} />
-            <Text style={s.carteraChipText} numberOfLines={1}>{carteraActiva?.nombre ?? 'Mi cartera'}</Text>
-            <Feather name="chevron-down" size={14} color={color.muted} />
-          </TouchableOpacity>
-        </View>
+        <Text style={s.title}>Inicio</Text>
         <TouchableOpacity onPress={() => router.push('/alertas')} style={s.bell}>
           <Feather name="bell" size={20} color={color.ink} />
           {!!noLeidas.data && (
@@ -113,6 +88,24 @@ export default function Dashboard() {
           )}
         </TouchableOpacity>
       </View>
+
+      {(carteras.data ?? []).length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.tabs}
+          style={{ marginBottom: 16, marginHorizontal: -18 }}
+        >
+          {(carteras.data ?? []).map((c) => {
+            const activa = c.id === carteraId
+            return (
+              <TouchableOpacity key={c.id} style={[s.tab, activa && s.tabActive]} onPress={() => seleccionarCartera(c)} activeOpacity={0.8}>
+                <Text style={[s.tabText, activa && s.tabTextActive]} numberOfLines={1}>{c.nombre}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
+      )}
 
       <AvisoSuscripcion />
 
@@ -197,10 +190,13 @@ export default function Dashboard() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: color.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg },
-  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   title: { fontFamily: font.display, fontSize: 24, color: color.ink, letterSpacing: -0.6 },
-  carteraChip: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6, marginTop: 4, paddingVertical: 5, paddingHorizontal: 10, borderRadius: radius.sm, backgroundColor: color.indigoTint },
-  carteraChipText: { fontFamily: font.bodyBold, fontSize: 13, color: color.primary, maxWidth: 180 },
+  tabs: { paddingHorizontal: 18, gap: 8 },
+  tab: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: radius.lg, backgroundColor: color.surface, ...shadowCard },
+  tabActive: { backgroundColor: color.primary },
+  tabText: { fontFamily: font.bodyBold, fontSize: 13, color: color.muted, maxWidth: 160 },
+  tabTextActive: { color: '#fff' },
   bell: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: color.surface, alignItems: 'center', justifyContent: 'center', ...shadowCard },
   badge: { position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: color.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   badgeText: { color: '#fff', fontSize: 9, fontFamily: font.bodyBold },

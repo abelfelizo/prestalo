@@ -11,7 +11,7 @@ import { useSession } from '@/store/session'
 import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { usePinPrompt } from '@/store/pinPrompt'
-import { color, font, radius, shadowCard, shadowRaised, gradient } from '@/theme'
+import { color, font, radius, shadowCard, gradient } from '@/theme'
 
 function estadoTinte(estado: string) {
   if (estado === 'en_mora') return { bg: color.dangerTint, fg: color.danger, label: 'Mora' }
@@ -49,25 +49,23 @@ export default function DetalleCliente() {
 
   return (
     <View style={s.container}>
-      <View style={s.banner}>
+      <View style={s.header}>
         <LinearGradient colors={gradient.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <TouchableOpacity style={s.back} onPress={() => router.back()}>
           <Feather name="chevron-left" size={22} color="#fff" />
         </TouchableOpacity>
+        <View style={s.avatar}><Text style={s.avatarText}>{c.nombre.slice(0, 2).toUpperCase()}</Text></View>
+        <Text style={s.nombre}>{c.nombre}</Text>
+        {!!c.telefono && <Text style={s.phone}>{c.telefono}</Text>}
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 40 }}>
-        <View style={s.profileCard}>
-          <View style={s.avatar}><Text style={s.avatarText}>{c.nombre.slice(0, 2).toUpperCase()}</Text></View>
-          <Text style={s.nombre}>{c.nombre}</Text>
-          {!!c.telefono && <Text style={s.sub}>{c.telefono}</Text>}
-          <View style={s.statsRow}>
-            <View style={s.stat}><Text style={s.statVal}>{f(c.total_prestado)}</Text><Text style={s.statLabel}>Prestado</Text></View>
-            <View style={s.statDivider} />
-            <View style={s.stat}><Text style={s.statVal}>{f(c.total_pagado)}</Text><Text style={s.statLabel}>Pagado</Text></View>
-            <View style={s.statDivider} />
-            <View style={s.stat}><Text style={s.statVal}>{c.veces_atrasado}</Text><Text style={s.statLabel}>Atrasos</Text></View>
-          </View>
+        <View style={s.statsCard}>
+          <View style={s.stat}><Text style={s.statVal}>{f(c.total_prestado)}</Text><Text style={s.statLabel}>Prestado</Text></View>
+          <View style={s.statDivider} />
+          <View style={s.stat}><Text style={s.statVal}>{f(c.total_pagado)}</Text><Text style={s.statLabel}>Pagado</Text></View>
+          <View style={s.statDivider} />
+          <View style={s.stat}><Text style={s.statVal}>{c.veces_atrasado}</Text><Text style={s.statLabel}>Atrasos</Text></View>
         </View>
 
         {(!!c.cedula || !!c.direccion) && (
@@ -79,7 +77,6 @@ export default function DetalleCliente() {
 
         {!!c.telefono && (
           <TouchableOpacity style={s.wa} onPress={() => cobrarPorWhatsApp(c.telefono!, c.nombre, 0, moneda)} activeOpacity={0.9}>
-            <Feather name="message-circle" size={16} color="#fff" />
             <Text style={s.waText}>Escribir por WhatsApp</Text>
           </TouchableOpacity>
         )}
@@ -132,14 +129,13 @@ function Row({ label, val }: { label: string; val: string }) {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: color.bg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg },
-  banner: { height: 122, overflow: 'hidden' },
-  back: { position: 'absolute', top: 52, left: 16, width: 38, height: 38, borderRadius: radius.md, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
-  profileCard: { backgroundColor: color.surface, borderRadius: radius.card, padding: 18, marginTop: -48, alignItems: 'center', ...shadowCard },
-  avatar: { width: 66, height: 66, borderRadius: radius.xxl, backgroundColor: color.indigoTint2, alignItems: 'center', justifyContent: 'center', borderWidth: 4, borderColor: color.surface, marginTop: -50 },
-  avatarText: { fontFamily: font.display, fontSize: 22, color: color.primary },
-  nombre: { fontFamily: font.display, fontSize: 19, color: color.ink, marginTop: 10 },
-  sub: { fontFamily: font.body, fontSize: 13, color: color.muted, marginTop: 2 },
-  statsRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16, alignSelf: 'stretch' },
+  header: { paddingTop: 54, paddingBottom: 40, alignItems: 'center', overflow: 'hidden' },
+  back: { position: 'absolute', top: 50, left: 16, width: 38, height: 38, borderRadius: radius.md, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  avatarText: { fontFamily: font.display, fontSize: 24, color: color.primary },
+  nombre: { fontFamily: font.display, fontSize: 20, color: '#fff', letterSpacing: -0.4 },
+  phone: { fontFamily: font.body, fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 3 },
+  statsCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: color.surface, borderRadius: radius.card, padding: 18, marginTop: -24, ...shadowCard },
   stat: { flex: 1, alignItems: 'center' },
   statDivider: { width: 1, height: 28, backgroundColor: color.line },
   statVal: { fontFamily: font.displaySemi, fontSize: 14, color: color.ink, fontVariant: ['tabular-nums'] },
@@ -148,12 +144,12 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   rowLabel: { fontFamily: font.body, fontSize: 14, color: color.muted },
   rowVal: { fontFamily: font.bodyBold, fontSize: 14, color: color.ink },
-  wa: { backgroundColor: color.whatsapp, borderRadius: radius.lg, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14 },
-  waText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 14 },
+  wa: { backgroundColor: color.whatsapp, borderRadius: radius.lg, paddingVertical: 15, alignItems: 'center', marginTop: 14 },
+  waText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 15 },
   editRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
   editBtn: { flex: 1, borderRadius: radius.md, padding: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: color.surface, ...shadowCard },
   editText: { fontFamily: font.bodyBold, color: color.ink, fontSize: 14 },
-  delBtn: { flex: 1, borderRadius: radius.md, padding: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: color.dangerTint, borderWidth: 1.5, borderColor: color.danger },
+  delBtn: { flex: 1, borderRadius: radius.md, padding: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: color.dangerTint },
   delText: { fontFamily: font.bodyBold, color: color.danger, fontSize: 14 },
   section: { fontFamily: font.displaySemi, fontSize: 14, color: color.ink, marginTop: 26, marginBottom: 12 },
   item: { backgroundColor: color.surface, borderRadius: radius.xl, padding: 14, marginBottom: 10, ...shadowCard },
