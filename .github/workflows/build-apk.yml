@@ -1,8 +1,13 @@
 name: Construir APK de Kuotas (Android)
 
-# Se ejecuta manualmente desde la pestaña "Actions" de GitHub (botón "Run workflow").
+# Se ejecuta automáticamente al hacer push a main, o manualmente desde "Actions".
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
 
 jobs:
   build:
