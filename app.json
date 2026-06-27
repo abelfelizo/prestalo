@@ -25,10 +25,6 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      [
-        "expo-image-picker",
-        { "photosPermission": "Kuotas necesita acceso a tus fotos para adjuntar garantías." }
-      ],
       "expo-notifications"
     ],
     "scheme": "kuotas"

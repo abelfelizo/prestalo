@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Image } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native'
 import { errMsg } from '@/lib/errores'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import * as ImagePicker from 'expo-image-picker'
 import { crearGarantia, editarGarantia, getGarantias } from '@/api/garantias'
-import { subirFotoGarantia, firmarUrl, firmarUrls } from '@/lib/upload'
 import { Boton } from '@/components/Boton'
 import { queryClient } from '@/lib/queryClient'
 import { color as COLORS, font, radius, shadowCard } from '@/theme'
@@ -18,9 +16,6 @@ export default function NuevaGarantia() {
   const editando = !!id
   const [tipo, setTipo] = useState<(typeof TIPOS)[number]>('cedula')
   const [descripcion, setDescripcion] = useState('')
-  const [fotos, setFotos] = useState<string[]>([]) // rutas en el bucket
-  const [previews, setPreviews] = useState<string[]>([]) // URLs firmadas para mostrar
-  const [subiendo, setSubiendo] = useState(false)
 
   const existentes = useQuery({ queryKey: ['garantias', prestamoId], queryFn: () => getGarantias(prestamoId), enabled: editando })
   useEffect(() => {
@@ -28,31 +23,14 @@ export default function NuevaGarantia() {
     if (g) {
       setTipo((TIPOS as readonly string[]).includes(g.tipo) ? (g.tipo as (typeof TIPOS)[number]) : 'otro')
       setDescripcion(g.descripcion ?? '')
-      const paths = g.foto_urls ?? []
-      setFotos(paths)
-      firmarUrls(paths).then(setPreviews)
     }
   }, [existentes.data])
 
-  async function agregarFoto() {
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.6 })
-    if (r.canceled || !r.assets?.[0]) return
-    setSubiendo(true)
-    try {
-      const path = await subirFotoGarantia(r.assets[0].uri, prestamoId)
-      const signed = await firmarUrl(path)
-      setFotos((prev) => [...prev, path])
-      setPreviews((prev) => [...prev, signed ?? ''])
-    } catch (e: any) {
-      Alert.alert('Error', errMsg(e, 'No se pudo subir la foto'))
-    } finally {
-      setSubiendo(false)
-    }
-  }
-
   const mut = useMutation({
     mutationFn: () => {
-      const payload = { tipo, descripcion: descripcion.trim() || null, foto_urls: fotos.length ? fotos : null }
+      // Solo se registra el TIPO de garantía como constancia. No se guardan fotos
+      // ni documentos para no almacenar datos sensibles (cédulas, tarjetas).
+      const payload = { tipo, descripcion: descripcion.trim() || null, foto_urls: null }
       return editando
         ? editarGarantia(id!, payload)
         : crearGarantia({
@@ -72,6 +50,7 @@ export default function NuevaGarantia() {
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
       <Text style={s.title}>{editando ? 'Editar garantía' : 'Nueva garantía'}</Text>
+      <Text style={s.sub}>Registra qué garantía recibiste como constancia. No se suben fotos ni documentos.</Text>
 
       <Text style={s.label}>Tipo</Text>
       <View style={s.chips}>
@@ -82,20 +61,10 @@ export default function NuevaGarantia() {
         ))}
       </View>
 
-      <Text style={s.label}>Descripción</Text>
-      <TextInput style={s.input} value={descripcion} onChangeText={setDescripcion} placeholder="Detalle de la garantía" placeholderTextColor="#bbb" />
+      <Text style={s.label}>Descripción (opcional)</Text>
+      <TextInput style={s.input} value={descripcion} onChangeText={setDescripcion} placeholder="Ej: tarjeta del Banco Popular, terminación 1234" placeholderTextColor="#bbb" />
 
-      <Text style={s.label}>Fotos</Text>
-      <View style={s.fotos}>
-        {previews.filter(Boolean).map((url) => (
-          <Image key={url} source={{ uri: url }} style={s.foto} />
-        ))}
-        <TouchableOpacity style={s.addFoto} onPress={agregarFoto} disabled={subiendo}>
-          {subiendo ? <ActivityIndicator color={COLORS.primary} /> : <Text style={s.addFotoText}>＋</Text>}
-        </TouchableOpacity>
-      </View>
-
-      <Boton icon="check" label={editando ? 'Guardar cambios' : 'Guardar garantía'} loading={mut.isPending} disabled={subiendo} onPress={() => mut.mutate()} style={{ marginTop: 28 }} />
+      <Boton icon="check" label={editando ? 'Guardar cambios' : 'Guardar garantía'} loading={mut.isPending} onPress={() => mut.mutate()} style={{ marginTop: 28 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )
@@ -103,7 +72,8 @@ export default function NuevaGarantia() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
-  title: { fontFamily: font.display, fontSize: 24, color: COLORS.ink, letterSpacing: -0.6, marginBottom: 12 },
+  title: { fontFamily: font.display, fontSize: 24, color: COLORS.ink, letterSpacing: -0.6, marginBottom: 8 },
+  sub: { fontFamily: font.body, fontSize: 13, color: COLORS.muted, marginBottom: 8, lineHeight: 19 },
   label: { fontFamily: font.bodyBold, fontSize: 11, color: COLORS.faint, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginTop: 16 },
   input: { backgroundColor: COLORS.surface, borderRadius: radius.md, padding: 14, fontFamily: font.body, fontSize: 15, color: COLORS.ink, ...shadowCard },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -111,9 +81,5 @@ const s = StyleSheet.create({
   chipSel: { backgroundColor: COLORS.primary },
   chipText: { fontFamily: font.bodySemi, fontSize: 13, color: COLORS.ink },
   chipTextSel: { color: '#fff' },
-  fotos: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  foto: { width: 72, height: 72, borderRadius: radius.sm, backgroundColor: COLORS.surface },
-  addFoto: { width: 72, height: 72, borderRadius: radius.sm, borderWidth: 1.5, borderColor: COLORS.indigoTint2, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface },
-  addFotoText: { fontSize: 30, color: COLORS.primary },
   cancel: { fontFamily: font.bodySemi, textAlign: 'center', color: COLORS.muted, marginTop: 16, fontSize: 14 },
 })

@@ -30,9 +30,9 @@ Puedes **eliminar permanentemente tu cuenta y todos tus datos** directamente des
 **Ajustes → Zona de peligro → Eliminar mi cuenta**. La eliminación es inmediata e irreversible.
 
 ## Datos sensibles
-Las fotos de garantías (cédulas, tarjetas) son datos sensibles. Recomendamos subir solo lo
-necesario. *(Pendiente de hardening: el almacenamiento de fotos debe migrarse a un bucket
-privado con URLs firmadas.)*
+Kuotas **no almacena fotos ni documentos de identidad**. De las garantías solo se registra el
+**tipo** (p. ej. "tarjeta bancaria", "cédula") como constancia del acuerdo, nunca imágenes ni
+números de documentos.
 
 ## Contacto
 [Define aquí tu email de contacto]

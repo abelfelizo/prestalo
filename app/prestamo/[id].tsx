@@ -12,7 +12,6 @@ import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
-import { FotosFirmadas } from '@/components/FotosFirmadas'
 import { usePinPrompt } from '@/store/pinPrompt'
 import { color as C, font, radius, shadowCard } from '@/theme'
 import type { Frecuencia } from '@/types'
@@ -174,7 +173,6 @@ export default function DetallePrestamo() {
             <Text style={s.itemTitle}>{g.tipo}</Text>
             {!!g.descripcion && <Text style={s.itemSub}>{g.descripcion}</Text>}
             <Text style={s.itemSub}>{g.estado}</Text>
-            {!!g.foto_urls?.length && <FotosFirmadas paths={g.foto_urls} />}
             <View style={s.gRow}>
               <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}&id=${g.id}`)}>
                 <Text style={s.linkSmall}>Editar</Text>
