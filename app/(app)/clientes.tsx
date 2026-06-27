@@ -7,7 +7,13 @@ import { getClientes } from '@/api/clientes'
 import { useSession } from '@/store/session'
 import { exigirSuscripcion } from '@/lib/guard'
 import { AvisoSuscripcion } from '@/components/AvisoSuscripcion'
-import { COLORS } from '@/lib/constants'
+import { color, font, radius, shadowCard, shadowRaised } from '@/theme'
+
+function tintePorScore(score: number) {
+  if (score >= 80) return { bg: color.successTint, fg: color.success }
+  if (score < 50) return { bg: color.dangerTint, fg: color.danger }
+  return { bg: color.indigoTint, fg: color.primary }
+}
 
 export default function Clientes() {
   const router = useRouter()
@@ -19,7 +25,7 @@ export default function Clientes() {
     enabled: !!carteraId,
   })
 
-  if (isLoading) return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
+  if (isLoading) return <View style={s.center}><ActivityIndicator color={color.primary} /></View>
 
   const term = q.trim().toLowerCase()
   const clientes = (data ?? []).filter(
@@ -30,22 +36,26 @@ export default function Clientes() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Clientes</Text>
-        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/cliente/nuevo')}>
-          <Feather name="plus" size={15} color="#fff" />
-          <Text style={s.addText}>Nuevo</Text>
+        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/cliente/nuevo')} activeOpacity={0.9}>
+          <Feather name="plus" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
-      <AvisoSuscripcion />
-      <TextInput
-        style={s.search}
-        value={q}
-        onChangeText={setQ}
-        placeholder="Buscar por nombre o teléfono"
-        placeholderTextColor="#bbb"
-      />
+      <View style={s.body}>
+        <AvisoSuscripcion />
+        <View style={s.searchBox}>
+          <Feather name="search" size={16} color={color.faint} />
+          <TextInput
+            style={s.search}
+            value={q}
+            onChangeText={setQ}
+            placeholder="Buscar cliente…"
+            placeholderTextColor={color.faint}
+          />
+        </View>
+      </View>
       {clientes.length === 0 ? (
         <View style={s.empty}>
-          <Text style={s.emptyEmoji}>👥</Text>
+          <Feather name="users" size={44} color={color.faint} />
           <Text style={s.emptyTitle}>Sin clientes</Text>
           <Text style={s.emptySub}>Agrega tu primer cliente</Text>
         </View>
@@ -53,19 +63,24 @@ export default function Clientes() {
         <FlatList
           data={clientes}
           keyExtractor={(i) => i.id}
-          contentContainerStyle={{ padding: 16, paddingBottom: 110 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={s.card} onPress={() => router.push(`/cliente/${item.id}`)}>
-              <View style={s.avatar}><Text style={s.avatarText}>{item.nombre.slice(0, 2).toUpperCase()}</Text></View>
-              <View style={s.info}>
-                <Text style={s.nombre}>{item.nombre}</Text>
-                {!!item.telefono && <Text style={s.tel}>{item.telefono}</Text>}
-              </View>
-              <View style={[s.score, item.score >= 80 && s.scoreGood, item.score < 50 && s.scoreBad]}>
-                <Text style={s.scoreText}>{item.score}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
+          contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 110 }}
+          renderItem={({ item }) => {
+            const c = tintePorScore(item.score)
+            return (
+              <TouchableOpacity style={s.card} onPress={() => router.push(`/cliente/${item.id}`)} activeOpacity={0.85}>
+                <View style={[s.avatar, { backgroundColor: c.bg }]}>
+                  <Text style={[s.avatarText, { color: c.fg }]}>{item.nombre.slice(0, 2).toUpperCase()}</Text>
+                </View>
+                <View style={s.info}>
+                  <Text style={s.nombre}>{item.nombre}</Text>
+                  {!!item.telefono && <Text style={s.tel}>{item.telefono}</Text>}
+                </View>
+                <View style={[s.score, { backgroundColor: c.bg }]}>
+                  <Text style={[s.scoreText, { color: c.fg }]}>{item.score}</Text>
+                </View>
+              </TouchableOpacity>
+            )
+          }}
         />
       )}
     </View>
@@ -73,25 +88,23 @@ export default function Clientes() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 56 },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
-  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  addText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  search: { marginHorizontal: 16, marginBottom: 6, backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  emptySub: { fontSize: 13, color: COLORS.textLight, marginTop: 4 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 14, padding: 14, marginBottom: 8 },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#E0E7FF', alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 15, fontWeight: '700', color: COLORS.primary },
+  container: { flex: 1, backgroundColor: color.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingTop: 56 },
+  title: { fontFamily: font.display, fontSize: 24, color: color.ink, letterSpacing: -0.6 },
+  addBtn: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: color.primary, alignItems: 'center', justifyContent: 'center', ...shadowRaised },
+  body: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6 },
+  searchBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: color.surface, borderRadius: radius.md, paddingHorizontal: 14, ...shadowCard },
+  search: { flex: 1, paddingVertical: 12, fontFamily: font.body, fontSize: 14, color: color.ink },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  emptyTitle: { fontFamily: font.displaySemi, fontSize: 18, color: color.ink, marginTop: 6 },
+  emptySub: { fontFamily: font.body, fontSize: 13, color: color.muted },
+  card: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.surface, borderRadius: radius.xl, padding: 13, marginBottom: 10, ...shadowCard },
+  avatar: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontFamily: font.displaySemi, fontSize: 14 },
   info: { flex: 1 },
-  nombre: { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  tel: { fontSize: 12, color: COLORS.textLight, marginTop: 1 },
-  score: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  scoreGood: { backgroundColor: '#e8f5e9' },
-  scoreBad: { backgroundColor: '#ffebee' },
-  scoreText: { fontSize: 12, fontWeight: '700', color: COLORS.text },
+  nombre: { fontFamily: font.bodyBold, fontSize: 15, color: color.ink },
+  tel: { fontFamily: font.body, fontSize: 12, color: color.muted, marginTop: 1 },
+  score: { minWidth: 36, height: 28, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  scoreText: { fontFamily: font.bodyBold, fontSize: 12 },
 })

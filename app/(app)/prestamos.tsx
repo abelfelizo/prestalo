@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { getPrestamos } from '@/api/prestamos'
@@ -8,7 +9,13 @@ import { useFmt } from '@/lib/useFmt'
 import { useSession } from '@/store/session'
 import { exigirSuscripcion } from '@/lib/guard'
 import { AvisoSuscripcion } from '@/components/AvisoSuscripcion'
-import { COLORS } from '@/lib/constants'
+import { color, font, radius, shadowCard, shadowRaised, gradient } from '@/theme'
+
+function estadoTinte(estado: string) {
+  if (estado === 'en_mora') return { bg: color.dangerTint, fg: color.danger, label: 'Mora' }
+  if (estado === 'activo') return { bg: color.successTint, fg: color.success, label: 'Al día' }
+  return { bg: color.indigoTint, fg: color.primary, label: estado }
+}
 
 export default function Prestamos() {
   const router = useRouter()
@@ -21,7 +28,7 @@ export default function Prestamos() {
     enabled: !!carteraId,
   })
 
-  if (isLoading) return <View style={s.center}><ActivityIndicator color={COLORS.primary} /></View>
+  if (isLoading) return <View style={s.center}><ActivityIndicator color={color.primary} /></View>
 
   const term = q.trim().toLowerCase()
   const prestamos = (data ?? []).filter(
@@ -32,22 +39,20 @@ export default function Prestamos() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Préstamos</Text>
-        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/prestamo/nuevo')}>
-          <Feather name="plus" size={15} color="#fff" />
-          <Text style={s.addText}>Nuevo</Text>
+        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/prestamo/nuevo')} activeOpacity={0.9}>
+          <Feather name="plus" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
-      <AvisoSuscripcion />
-      <TextInput
-        style={s.search}
-        value={q}
-        onChangeText={setQ}
-        placeholder="Buscar por cliente"
-        placeholderTextColor="#bbb"
-      />
+      <View style={s.body}>
+        <AvisoSuscripcion />
+        <View style={s.searchBox}>
+          <Feather name="search" size={16} color={color.faint} />
+          <TextInput style={s.search} value={q} onChangeText={setQ} placeholder="Buscar por cliente…" placeholderTextColor={color.faint} />
+        </View>
+      </View>
       {prestamos.length === 0 ? (
         <View style={s.empty}>
-          <Text style={s.emptyEmoji}>💸</Text>
+          <Feather name="credit-card" size={44} color={color.faint} />
           <Text style={s.emptyTitle}>Sin préstamos</Text>
           <Text style={s.emptySub}>Los préstamos aparecerán aquí</Text>
         </View>
@@ -55,22 +60,43 @@ export default function Prestamos() {
         <FlatList
           data={prestamos}
           keyExtractor={(i) => i.id}
-          contentContainerStyle={{ padding: 16, paddingBottom: 110 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={s.card} onPress={() => router.push(`/prestamo/${item.id}`)}>
-              <View style={s.cardTop}>
-                <Text style={s.clienteNombre}>{item.clientes?.nombre || 'Cliente'}</Text>
-                <View style={[s.pill, item.estado === 'en_mora' && s.pillR, item.estado === 'activo' && s.pillG]}>
-                  <Text style={[s.pillText, item.estado === 'en_mora' && { color: COLORS.danger }, item.estado === 'activo' && { color: COLORS.success }]}>{item.estado}</Text>
+          contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 110 }}
+          renderItem={({ item }) => {
+            const c = estadoTinte(item.estado)
+            const pct = item.num_cuotas ? Math.min(1, item.cuotas_pagadas / item.num_cuotas) : 0
+            const mora = item.estado === 'en_mora'
+            return (
+              <TouchableOpacity style={s.card} onPress={() => router.push(`/prestamo/${item.id}`)} activeOpacity={0.85}>
+                <View style={s.cardTop}>
+                  <View style={s.cardLeft}>
+                    <View style={[s.avatar, { backgroundColor: c.bg }]}>
+                      <Text style={[s.avatarText, { color: c.fg }]}>{(item.clientes?.nombre || 'XX').slice(0, 2).toUpperCase()}</Text>
+                    </View>
+                    <View>
+                      <Text style={s.clienteNombre}>{item.clientes?.nombre || 'Cliente'}</Text>
+                      <Text style={s.sub}>Saldo {f(item.saldo_pendiente)}</Text>
+                    </View>
+                  </View>
+                  <View style={[s.pill, { backgroundColor: c.bg }]}>
+                    <View style={[s.dot, { backgroundColor: c.fg }]} />
+                    <Text style={[s.pillText, { color: c.fg }]}>{c.label}</Text>
+                  </View>
                 </View>
-              </View>
-              <View style={s.montos}>
-                <View><Text style={s.montoLabel}>Saldo</Text><Text style={s.montoVal}>{f(item.saldo_pendiente)}</Text></View>
-                <View><Text style={s.montoLabel}>Capital</Text><Text style={s.montoVal}>{f(item.monto_capital)}</Text></View>
-                <View><Text style={s.montoLabel}>Cuotas</Text><Text style={s.montoVal}>{item.cuotas_pagadas}/{item.num_cuotas}</Text></View>
-              </View>
-            </TouchableOpacity>
-          )}
+
+                <View style={s.track}>
+                  {mora ? (
+                    <View style={[s.fill, { width: `${pct * 100}%`, backgroundColor: color.danger }]} />
+                  ) : (
+                    <LinearGradient colors={gradient.button} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[s.fill, { width: `${pct * 100}%` }]} />
+                  )}
+                </View>
+                <View style={s.footer}>
+                  <Text style={s.footMeta}>Cuota {item.cuotas_pagadas}/{item.num_cuotas}</Text>
+                  <Text style={s.footMeta}>Capital {f(item.monto_capital)}</Text>
+                </View>
+              </TouchableOpacity>
+            )
+          }}
         />
       )}
     </View>
@@ -78,25 +104,29 @@ export default function Prestamos() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, paddingTop: 56 },
-  title: { fontSize: 28, fontWeight: '800', color: COLORS.primary },
-  addBtn: { backgroundColor: COLORS.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  addText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  search: { marginHorizontal: 16, marginBottom: 6, backgroundColor: COLORS.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: COLORS.text, borderWidth: 1.5, borderColor: COLORS.border },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyEmoji: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
-  emptySub: { fontSize: 13, color: COLORS.textLight, marginTop: 4 },
-  card: { backgroundColor: COLORS.bg, borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 14, padding: 14, marginBottom: 8 },
+  container: { flex: 1, backgroundColor: color.bg },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: color.bg },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingTop: 56 },
+  title: { fontFamily: font.display, fontSize: 24, color: color.ink, letterSpacing: -0.6 },
+  addBtn: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: color.primary, alignItems: 'center', justifyContent: 'center', ...shadowRaised },
+  body: { paddingHorizontal: 18, paddingTop: 14, paddingBottom: 6 },
+  searchBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: color.surface, borderRadius: radius.md, paddingHorizontal: 14, ...shadowCard },
+  search: { flex: 1, paddingVertical: 12, fontFamily: font.body, fontSize: 14, color: color.ink },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  emptyTitle: { fontFamily: font.displaySemi, fontSize: 18, color: color.ink, marginTop: 6 },
+  emptySub: { fontFamily: font.body, fontSize: 13, color: color.muted },
+  card: { backgroundColor: color.surface, borderRadius: radius.xl, padding: 14, marginBottom: 10, ...shadowCard },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  clienteNombre: { fontSize: 15, fontWeight: '700', color: COLORS.text },
-  pill: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20, backgroundColor: COLORS.surface },
-  pillR: { backgroundColor: '#ffebee' },
-  pillG: { backgroundColor: '#e8f5e9' },
-  pillText: { fontSize: 11, fontWeight: '700', color: COLORS.textLight },
-  montos: { flexDirection: 'row', justifyContent: 'space-between' },
-  montoLabel: { fontSize: 11, color: COLORS.textLight, marginBottom: 2 },
-  montoVal: { fontSize: 14, fontWeight: '700', color: COLORS.text },
+  cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  avatar: { width: 40, height: 40, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontFamily: font.displaySemi, fontSize: 14 },
+  clienteNombre: { fontFamily: font.bodyBold, fontSize: 15, color: color.ink },
+  sub: { fontFamily: font.body, fontSize: 12, color: color.muted, marginTop: 2 },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.sm },
+  dot: { width: 5, height: 5, borderRadius: 3 },
+  pillText: { fontFamily: font.bodyBold, fontSize: 10 },
+  track: { height: 6, borderRadius: 4, backgroundColor: color.indigoTint, overflow: 'hidden' },
+  fill: { height: 6, borderRadius: 4 },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
+  footMeta: { fontFamily: font.bodySemi, fontSize: 12, color: color.muted },
 })
