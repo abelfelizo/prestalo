@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Share, Linking } from 'react-native'
 import { errMsg } from '@/lib/errores'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { crearHeredero, editarHeredero, getHerederos } from '@/api/herederos'
+import { getPrestamista } from '@/api/prestamistas'
 import { hashPin } from '@/lib/pin'
 import { telefonoValido } from '@/lib/validar'
 import { queryClient } from '@/lib/queryClient'
@@ -25,7 +26,40 @@ export default function NuevoHeredero() {
   const [clave, setClave] = useState('')
   const [dias, setDias] = useState('30')
 
+  const prestamista = useQuery({ queryKey: ['prestamista', prestamistaId], queryFn: () => getPrestamista(prestamistaId!), enabled: !!prestamistaId })
   const existentes = useQuery({ queryKey: ['herederos', prestamistaId], queryFn: () => getHerederos(prestamistaId!), enabled: editando && !!prestamistaId })
+
+  function mensajeInstrucciones(): string {
+    const dueno = prestamista.data?.nombre ?? 'El titular'
+    return (
+      `Hola ${nombre.trim()}. ${dueno} te designó como heredero de su cartera en la app Kuotas. ` +
+      `Si algún día no puede gestionarla, podrás consultarla así:\n` +
+      `1) Descarga Kuotas\n` +
+      `2) Toca "Soy heredero"\n` +
+      `3) Escribe tu teléfono (${telefono.trim()}) y esta clave: ${clave}\n` +
+      `El acceso se habilita automáticamente tras ${parseInt(dias, 10) || 30} días sin actividad de ${dueno}.`
+    )
+  }
+
+  function enviarPorWhatsApp() {
+    const msg = encodeURIComponent(mensajeInstrucciones())
+    const num = telefono.replace(/\D/g, '')
+    Linking.openURL(`whatsapp://send?phone=${num}&text=${msg}`).catch(() =>
+      Linking.openURL(`https://wa.me/${num}?text=${msg}`),
+    )
+  }
+
+  function ofrecerInstrucciones() {
+    Alert.alert(
+      'Heredero guardado',
+      'Entrégale sus instrucciones y su clave. Solo tú las ves ahora (en la base se guardan cifradas).',
+      [
+        { text: 'Enviar por WhatsApp', onPress: () => { enviarPorWhatsApp(); router.back() } },
+        { text: 'Compartir tarjeta', onPress: () => { Share.share({ message: mensajeInstrucciones() }).catch(() => {}); router.back() } },
+        { text: 'Listo', style: 'cancel', onPress: () => router.back() },
+      ],
+    )
+  }
   useEffect(() => {
     const h = existentes.data?.find((x) => x.id === id)
     if (h) {
@@ -60,7 +94,9 @@ export default function NuevoHeredero() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['herederos', prestamistaId] })
-      router.back()
+      // Ofrecer instrucciones cuando hay una clave en claro que mostrar (al crear, o al fijar una nueva).
+      if (!editando || clave.trim()) ofrecerInstrucciones()
+      else router.back()
     },
     onError: (e: any) => Alert.alert('Error', errMsg(e, 'No se pudo guardar')),
   })
