@@ -4,12 +4,13 @@ import { errMsg } from '@/lib/errores'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getPrestamo, refinanciarPrestamo } from '@/api/prestamos'
-import { calcularPrestamo, primeraFechaPago } from '@/lib/calculos'
+import { calcularPrestamo, primeraFechaPago, hoyLocalISO } from '@/lib/calculos'
 import { nuevoOpId } from '@/lib/opid'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
 import { Boton } from '@/components/Boton'
 import { useSession } from '@/store/session'
+import { exigirSuscripcion } from '@/lib/guard'
 import { color as COLORS, font, radius, shadowCard } from '@/theme'
 import type { Frecuencia, ModeloInteres } from '@/types'
 
@@ -45,7 +46,7 @@ export default function Refinanciar() {
 
   const mut = useMutation({
     mutationFn: async () => {
-      const fechaInicio = new Date().toISOString().slice(0, 10)
+      const fechaInicio = hoyLocalISO()
       await refinanciarPrestamo({
         viejoId: viejo!.id,
         capital: cap,
@@ -72,6 +73,7 @@ export default function Refinanciar() {
   })
 
   function guardar() {
+    if (!exigirSuscripcion(router)) return
     if (cap <= 0) return Alert.alert('Capital inválido')
     if (n <= 0) return Alert.alert('Número de cuotas inválido')
     mut.mutate()

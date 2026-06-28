@@ -9,6 +9,7 @@ import { telefonoValido } from '@/lib/validar'
 import { queryClient } from '@/lib/queryClient'
 import { Boton } from '@/components/Boton'
 import { useSession } from '@/store/session'
+import { exigirSuscripcion } from '@/lib/guard'
 import { color as COLORS, font, radius, shadowCard } from '@/theme'
 
 const RELACIONES = ['familiar', 'socio', 'amigo', 'abogado'] as const
@@ -40,6 +41,7 @@ export default function NuevoHeredero() {
   })
 
   function guardar() {
+    if (!exigirSuscripcion(router)) return
     if (!nombre.trim()) return Alert.alert('Falta el nombre')
     if (!telefonoValido(telefono)) return Alert.alert('Teléfono inválido', 'Debe tener entre 7 y 15 dígitos.')
     if (clave.length < 6) return Alert.alert('Clave muy corta', 'Mínimo 6 caracteres')

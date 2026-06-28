@@ -191,6 +191,7 @@ export type Database = {
           activo: boolean
           cartera_id: string
           cedula: string | null
+          client_op_id: string | null
           created_at: string | null
           deleted_at: string | null
           direccion: string | null
@@ -208,6 +209,7 @@ export type Database = {
         Insert: {
           activo?: boolean
           cartera_id: string
+          client_op_id?: string | null
           cedula?: string | null
           created_at?: string | null
           deleted_at?: string | null

@@ -34,6 +34,25 @@ export function interesDeCuota(
   return capitalRestante * (tasa / 100) * factorPeriodo(frecuencia)
 }
 
+/** Formatea un Date como 'YYYY-MM-DD' en horario LOCAL (sin desfase UTC). */
+export function fechaLocalISO(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+/** Fecha de hoy en horario local, como 'YYYY-MM-DD'. */
+export function hoyLocalISO(): string {
+  return fechaLocalISO(new Date())
+}
+
+/** Parsea 'YYYY-MM-DD' como fecha LOCAL a medianoche (evita el desfase de día en RD, UTC-4). */
+export function parseFechaLocal(s: string): Date {
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, (m || 1) - 1, d || 1)
+}
+
 export interface ResumenPrestamo {
   montoTotal: number // capital + intereses (= saldo_pendiente inicial)
   interesTotal: number
@@ -77,22 +96,22 @@ export function generarCalendario(
   cuota: number,
 ): CuotaCalendario[] {
   const out: CuotaCalendario[] = []
-  const base = new Date(fechaInicio)
+  const base = parseFechaLocal(fechaInicio)
   for (let i = 1; i <= numCuotas; i++) {
     const d = new Date(base)
     if (frecuencia === 'mensual') d.setMonth(d.getMonth() + i)
     else d.setDate(d.getDate() + DIAS_POR_FRECUENCIA[frecuencia] * i)
-    out.push({ numero: i, fecha: d.toISOString().slice(0, 10), monto: cuota })
+    out.push({ numero: i, fecha: fechaLocalISO(d), monto: cuota })
   }
   return out
 }
 
 /** Primera fecha de cobro a partir de la fecha de inicio. */
 export function primeraFechaPago(fechaInicio: string, frecuencia: Frecuencia): string {
-  const d = new Date(fechaInicio)
+  const d = parseFechaLocal(fechaInicio)
   if (frecuencia === 'mensual') d.setMonth(d.getMonth() + 1)
   else d.setDate(d.getDate() + DIAS_POR_FRECUENCIA[frecuencia])
-  return d.toISOString().slice(0, 10)
+  return fechaLocalISO(d)
 }
 
 export interface DesglosePago {
@@ -129,14 +148,14 @@ export function calendarioPrestamo(p: {
   const frecuencia = p.frecuencia_cobro as Frecuencia
   const modelo = p.modelo_interes as ModeloInteres
   const capCuota = n > 0 ? capital / n : capital
-  const base = new Date(p.fecha_inicio)
+  const base = parseFechaLocal(p.fecha_inicio)
   const out: ItemCalendario[] = []
   for (let i = 1; i <= n; i++) {
     const d = new Date(base)
     if (frecuencia === 'mensual') d.setMonth(d.getMonth() + i)
     else d.setDate(d.getDate() + (DIAS_POR_FRECUENCIA[frecuencia] ?? 30) * i)
     const interes = interesDeCuota(capital, tasa, modelo, n, frecuencia, i - 1)
-    out.push({ numero: i, fecha: d.toISOString().slice(0, 10), monto: capCuota + interes, pagada: i <= p.cuotas_pagadas })
+    out.push({ numero: i, fecha: fechaLocalISO(d), monto: capCuota + interes, pagada: i <= p.cuotas_pagadas })
   }
   return out
 }
@@ -259,10 +278,10 @@ export function calcularMora(
 /** Días de atraso respecto a la fecha de próximo pago. */
 export function diasMora(fechaProximoPago: string | null): number {
   if (!fechaProximoPago) return 0
-  const hoy = new Date()
-  const vence = new Date(fechaProximoPago)
+  const hoy = parseFechaLocal(hoyLocalISO())
+  const vence = parseFechaLocal(fechaProximoPago)
   if (hoy <= vence) return 0
-  return Math.floor((hoy.getTime() - vence.getTime()) / 86_400_000)
+  return Math.round((hoy.getTime() - vence.getTime()) / 86_400_000)
 }
 
 /** Formatea un monto con la moneda de la cartera. */

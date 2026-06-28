@@ -27,6 +27,8 @@ export default function Index() {
           const compartidas = await getCarterasAccesibles().catch(() => [])
           if (compartidas.length > 0) {
             // Los cobradores acceden a través de la cartera del dueño: acceso completo.
+            // DECISIÓN DE PRODUCTO (intencional): el colaborador NO pasa por PIN local.
+            // Entra con desbloqueado=true. El PIN para colaboradores queda como mejora futura.
             useSuscripcion.getState().set('activa', 0)
             setCarteraActiva(compartidas[0].id)
             setMoneda(compartidas[0].moneda)

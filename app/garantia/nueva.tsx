@@ -6,6 +6,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { crearGarantia, editarGarantia, getGarantias } from '@/api/garantias'
 import { Boton } from '@/components/Boton'
 import { queryClient } from '@/lib/queryClient'
+import { exigirSuscripcion } from '@/lib/guard'
 import { color as COLORS, font, radius, shadowCard } from '@/theme'
 
 const TIPOS = ['tarjeta_bancaria', 'cedula', 'titulo_vehiculo', 'propiedad', 'joyas', 'otro'] as const
@@ -47,6 +48,11 @@ export default function NuevaGarantia() {
     onError: (e: any) => Alert.alert('Error', errMsg(e, 'No se pudo guardar')),
   })
 
+  function guardar() {
+    if (!exigirSuscripcion(router)) return
+    mut.mutate()
+  }
+
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
       <Text style={s.title}>{editando ? 'Editar garantía' : 'Nueva garantía'}</Text>
@@ -64,7 +70,7 @@ export default function NuevaGarantia() {
       <Text style={s.label}>Descripción (opcional)</Text>
       <TextInput style={s.input} value={descripcion} onChangeText={setDescripcion} placeholder="Ej: tarjeta del Banco Popular, terminación 1234" placeholderTextColor="#bbb" />
 
-      <Boton icon="check" label={editando ? 'Guardar cambios' : 'Guardar garantía'} loading={mut.isPending} onPress={() => mut.mutate()} style={{ marginTop: 28 }} />
+      <Boton icon="check" label={editando ? 'Guardar cambios' : 'Guardar garantía'} loading={mut.isPending} onPress={guardar} style={{ marginTop: 28 }} />
       <TouchableOpacity onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></TouchableOpacity>
     </ScrollView>
   )

@@ -19,9 +19,23 @@ export async function getCliente(id: string): Promise<Cliente | null> {
 }
 
 export async function crearCliente(input: Inserts<'clientes'>): Promise<Cliente> {
-  const { data, error } = await supabase.from('clientes').insert(input).select().single()
+  // Idempotente: un reintento con el mismo client_op_id no crea un cliente duplicado.
+  const { data, error } = await supabase
+    .from('clientes')
+    .upsert(input, { onConflict: 'client_op_id', ignoreDuplicates: true })
+    .select()
   if (error) throw error
-  return data
+  if (data && data.length) return data[0]
+  if (input.client_op_id) {
+    const { data: existente, error: e2 } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('client_op_id', input.client_op_id)
+      .maybeSingle()
+    if (e2) throw e2
+    if (existente) return existente
+  }
+  throw new Error('No se pudo crear el cliente')
 }
 
 export async function editarCliente(id: string, patch: Partial<Inserts<'clientes'>>): Promise<void> {
