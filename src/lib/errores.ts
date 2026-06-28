@@ -19,6 +19,10 @@ export function errMsg(e: unknown, fallback = 'Algo salió mal. Inténtalo de nu
   if (m.includes('intentos')) {
     return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
   }
+  // Validación de negocio: solo se puede anular el último pago (mensaje seguro de mostrar).
+  if (m.includes('último pago') || m.includes('ultimo pago')) {
+    return 'Solo puedes anular el último pago registrado de este préstamo.'
+  }
   if (m.includes('invalid login') || m.includes('invalid credentials')) {
     return 'Correo o contraseña incorrectos.'
   }

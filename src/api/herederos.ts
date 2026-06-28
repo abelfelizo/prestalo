@@ -24,6 +24,12 @@ export async function eliminarHeredero(id: string): Promise<void> {
   if (error) throw error
 }
 
+/** Edita un heredero (teléfono, relación, días de inactividad y, opcionalmente, su clave). */
+export async function editarHeredero(id: string, patch: Partial<Inserts<'herederos'>>): Promise<void> {
+  const { error } = await supabase.from('herederos').update(patch).eq('id', id)
+  if (error) throw error
+}
+
 export interface AccesoHeredero {
   autorizado: boolean
   dias_inactivo?: number

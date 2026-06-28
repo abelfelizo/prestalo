@@ -5,6 +5,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { editarCliente, getCliente } from '@/api/clientes'
 import { ejecutar } from '@/lib/outbox'
+import { nuevoOpId } from '@/lib/opid'
+import { exigirSuscripcion } from '@/lib/guard'
 import { Boton } from '@/components/Boton'
 import { telefonoValido } from '@/lib/validar'
 import { queryClient } from '@/lib/queryClient'
@@ -45,7 +47,7 @@ export default function NuevoCliente() {
         await editarCliente(id!, patch)
         return { encolado: false }
       }
-      return ejecutar('crearCliente', { cartera_id: carteraId!, ...patch })
+      return ejecutar('crearCliente', { cartera_id: carteraId!, ...patch, client_op_id: nuevoOpId() })
     },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['clientes', carteraId] })
@@ -57,6 +59,7 @@ export default function NuevoCliente() {
   })
 
   function guardar() {
+    if (!exigirSuscripcion(router)) return
     if (!nombre.trim()) return Alert.alert('Falta el nombre')
     if (!telefonoValido(telefono)) return Alert.alert('Teléfono inválido', 'Debe tener entre 7 y 15 dígitos.')
     mut.mutate()

@@ -13,6 +13,7 @@ import { useSession } from '@/store/session'
 import { queryClient } from '@/lib/queryClient'
 import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { usePinPrompt } from '@/store/pinPrompt'
+import { exigirSuscripcion } from '@/lib/guard'
 import { LinearGradient } from 'expo-linear-gradient'
 import { color as C, font, radius, shadowCard, shadowRaised, gradient } from '@/theme'
 import type { Frecuencia } from '@/types'
@@ -48,6 +49,7 @@ export default function DetallePrestamo() {
   }
 
   async function prorrogar() {
+    if (!exigirSuscripcion(router)) return
     const nueva = primeraFechaPago(p.fecha_proximo_pago, p.frecuencia_cobro as Frecuencia)
     Alert.alert('Otorgar prórroga', `Mover el próximo pago a ${nueva}?`, [
       { text: 'Cancelar', style: 'cancel' },
@@ -66,6 +68,7 @@ export default function DetallePrestamo() {
   }
 
   function cancelar() {
+    if (!exigirSuscripcion(router)) return
     pedirPin(async () => {
       try {
         await cancelarPrestamo(p.id)

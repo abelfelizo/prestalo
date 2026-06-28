@@ -8,6 +8,7 @@ import {
   verificarPinLocal,
   limpiarPinLocal,
   biometriaDisponible,
+  biometriaActiva,
   autenticarBiometria,
   pinBloqueadoMs,
   registrarFalloPin,
@@ -40,7 +41,7 @@ export default function Lock() {
       setModo(tiene ? 'verificar' : 'crear')
       const ms = await pinBloqueadoMs()
       if (ms > 0) setBloqueoSeg(Math.ceil(ms / 1000))
-      if (tiene && ms === 0 && (await biometriaDisponible())) {
+      if (tiene && ms === 0 && (await biometriaActiva()) && (await biometriaDisponible())) {
         if (await autenticarBiometria()) desbloquear()
       }
     })()

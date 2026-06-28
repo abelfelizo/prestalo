@@ -6,6 +6,8 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { editarMovimiento, getMovimiento } from '@/api/caja'
 import { ejecutar } from '@/lib/outbox'
 import { nuevoOpId } from '@/lib/opid'
+import { hoyLocalISO } from '@/lib/calculos'
+import { exigirSuscripcion } from '@/lib/guard'
 import { Boton } from '@/components/Boton'
 import { queryClient } from '@/lib/queryClient'
 import { useSession } from '@/store/session'
@@ -47,7 +49,7 @@ export default function NuevoMovimiento() {
         categoria: sel.categoria,
         monto: parseFloat(monto) || 0,
         descripcion: descripcion.trim() || null,
-        fecha: new Date().toISOString().slice(0, 10),
+        fecha: hoyLocalISO(),
       }
       return editando
         ? editarMovimiento(id!, payload).then(() => ({ encolado: false }))
@@ -63,6 +65,7 @@ export default function NuevoMovimiento() {
   })
 
   function guardar() {
+    if (!exigirSuscripcion(router)) return
     if ((parseFloat(monto) || 0) <= 0) return Alert.alert('Monto inválido')
     mut.mutate()
   }

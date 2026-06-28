@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { getCarterasAccesibles, setCarteraActiva, invitarColaborador } from '@/api/prestamistas'
+import { getCarterasAccesibles, setCarteraActiva, invitarColaborador, archivarCartera, getColaboradores, revocarColaborador } from '@/api/prestamistas'
 import { getHerederos, eliminarHeredero } from '@/api/herederos'
 import { signOut, eliminarCuenta } from '@/api/auth'
 import { limpiarPinLocal } from '@/lib/pin'
@@ -32,6 +32,40 @@ export default function Ajustes() {
 
   const carteras = useQuery({ queryKey: ['carteras-accesibles'], queryFn: getCarterasAccesibles })
   const herederos = useQuery({ queryKey: ['herederos', prestamistaId], queryFn: () => getHerederos(prestamistaId!), enabled: !!prestamistaId })
+  const colaboradores = useQuery({
+    queryKey: ['colaboradores', carteraActivaId],
+    queryFn: () => getColaboradores(carteraActivaId!),
+    enabled: !!carteraActivaId,
+  })
+
+  function gestionarCartera(c: { id: string; nombre: string }) {
+    Alert.alert(c.nombre, undefined, [
+      { text: 'Editar', onPress: () => router.push(`/cartera/nueva?id=${c.id}`) },
+      {
+        text: 'Archivar',
+        style: 'destructive',
+        onPress: () =>
+          pedirPin(async () => {
+            await archivarCartera(c.id)
+            queryClient.invalidateQueries({ queryKey: ['carteras-accesibles'] })
+            queryClient.invalidateQueries({ queryKey: ['carteras', prestamistaId] })
+          }, `PIN para archivar ${c.nombre}`),
+      },
+      { text: 'Cancelar', style: 'cancel' },
+    ])
+  }
+
+  function quitarColaborador(userId: string, email: string) {
+    pedirPin(async () => {
+      try {
+        await revocarColaborador(carteraActivaId!, userId)
+        colaboradores.refetch()
+        Alert.alert('Listo', `Quitaste el acceso de ${email}`)
+      } catch (e: any) {
+        Alert.alert('Error', errMsg(e, 'No se pudo quitar el acceso'))
+      }
+    }, `PIN para quitar a ${email}`)
+  }
 
   async function cambiarCartera(id: string, moneda: string) {
     if (prestamistaId) await setCarteraActiva(prestamistaId, id).catch(() => {})
@@ -123,12 +157,20 @@ export default function Ajustes() {
         </View>
       </View>
 
+      <Fila icon="user" label="Cuenta y seguridad" onPress={() => router.push('/cuenta')} />
+
       <Text style={s.section}>Mis carteras</Text>
       {carteras.isLoading ? (
         <ActivityIndicator color={color.primary} />
       ) : (
         (carteras.data ?? []).map((c) => (
-          <TouchableOpacity key={c.id} style={s.cartera} onPress={() => cambiarCartera(c.id, c.moneda)} activeOpacity={0.7}>
+          <TouchableOpacity
+            key={c.id}
+            style={s.cartera}
+            onPress={() => cambiarCartera(c.id, c.moneda)}
+            onLongPress={() => gestionarCartera(c)}
+            activeOpacity={0.7}
+          >
             <View style={[s.dot, { backgroundColor: COLOR_CARTERA[c.color as ColorCartera] ?? color.primary }]} />
             <Text style={s.carteraNombre}>{c.nombre}</Text>
             <Text style={s.carteraMoneda}>{c.moneda}</Text>
@@ -136,6 +178,7 @@ export default function Ajustes() {
           </TouchableOpacity>
         ))
       )}
+      <Text style={s.hint}>Mantén presionada una cartera para editarla o archivarla.</Text>
       <Fila icon="plus-circle" label="Nueva cartera" onPress={() => router.push('/cartera/nueva')} />
 
       {!!prestamistaId && (
@@ -157,6 +200,18 @@ export default function Ajustes() {
               <Text style={s.shareBtnText}>Invitar</Text>
             </TouchableOpacity>
           </View>
+          {(colaboradores.data ?? []).length > 0 && (
+            <View style={{ marginTop: 12 }}>
+              {(colaboradores.data ?? []).map((col) => (
+                <View key={col.user_id} style={s.colab}>
+                  <Text style={s.colabEmail} numberOfLines={1}>{col.email}</Text>
+                  <TouchableOpacity onPress={() => quitarColaborador(col.user_id, col.email)}>
+                    <Text style={s.colabQuitar}>Quitar</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
         </>
       )}
 
@@ -165,10 +220,18 @@ export default function Ajustes() {
       <Fila icon="settings" label="Configuración de mora" onPress={() => router.push('/config-mora')} />
 
       <Text style={s.section}>Herederos</Text>
+      {!herederos.isLoading && (herederos.data ?? []).length === 0 && (
+        <View style={s.avisoHerencia}>
+          <Feather name="alert-circle" size={16} color={color.warning} />
+          <Text style={s.avisoHerenciaText}>Nadie podrá acceder a tu cartera si te pasa algo. Agrega un heredero.</Text>
+        </View>
+      )}
       {(herederos.data ?? []).map((h) => (
         <TouchableOpacity
           key={h.id}
           style={s.heredero}
+          activeOpacity={0.7}
+          onPress={() => router.push(`/heredero/nuevo?id=${h.id}`)}
           onLongPress={() =>
             pedirPin(async () => {
               await eliminarHeredero(h.id)
@@ -177,7 +240,7 @@ export default function Ajustes() {
           }
         >
           <Text style={s.herederoNombre}>{h.nombre}</Text>
-          <Text style={s.herederoSub}>{h.relacion} · {h.telefono} · mantén presionado para eliminar</Text>
+          <Text style={s.herederoSub}>{h.relacion} · {h.telefono} · toca para editar · mantén presionado para eliminar</Text>
         </TouchableOpacity>
       ))}
       <Fila icon="user-plus" label="Agregar heredero" onPress={() => router.push('/heredero/nuevo')} />
@@ -218,6 +281,11 @@ const s = StyleSheet.create({
   shareInput: { flex: 1, backgroundColor: color.surface, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 11, fontFamily: font.body, fontSize: 14, color: color.ink, ...shadowCard },
   shareBtn: { backgroundColor: color.primary, borderRadius: radius.md, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center' },
   shareBtnText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 14 },
+  colab: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: color.surface, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 11, marginBottom: 8, ...shadowCard },
+  colabEmail: { flex: 1, fontFamily: font.bodySemi, fontSize: 13, color: color.ink, marginRight: 10 },
+  colabQuitar: { fontFamily: font.bodyBold, fontSize: 13, color: color.danger },
+  avisoHerencia: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: color.warningTint, borderRadius: radius.md, padding: 12, marginBottom: 10 },
+  avisoHerenciaText: { flex: 1, fontFamily: font.bodySemi, fontSize: 12.5, color: color.warning },
   heredero: { backgroundColor: color.surface, borderRadius: radius.lg, padding: 14, marginBottom: 8, ...shadowCard },
   herederoNombre: { fontFamily: font.bodyBold, fontSize: 15, color: color.ink },
   herederoSub: { fontFamily: font.body, fontSize: 12, color: color.muted, marginTop: 2 },

@@ -5,9 +5,10 @@ import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { getClientes } from '@/api/clientes'
 import { getPrestamo, editarPrestamo } from '@/api/prestamos'
-import { calcularPrestamo, primeraFechaPago } from '@/lib/calculos'
+import { calcularPrestamo, primeraFechaPago, hoyLocalISO } from '@/lib/calculos'
 import { ejecutar } from '@/lib/outbox'
 import { nuevoOpId } from '@/lib/opid'
+import { exigirSuscripcion } from '@/lib/guard'
 import { Boton } from '@/components/Boton'
 import { useFmt } from '@/lib/useFmt'
 import { queryClient } from '@/lib/queryClient'
@@ -58,7 +59,7 @@ export default function NuevoPrestamo() {
 
   const mut = useMutation({
     mutationFn: () => {
-      const fechaInicio = existente.data?.fecha_inicio ?? new Date().toISOString().slice(0, 10)
+      const fechaInicio = existente.data?.fecha_inicio ?? hoyLocalISO()
       const datos = {
         cartera_id: carteraId!,
         cliente_id: clienteId!,
@@ -89,6 +90,7 @@ export default function NuevoPrestamo() {
   })
 
   function guardar() {
+    if (!exigirSuscripcion(router)) return
     if (!clienteId) return Alert.alert('Selecciona un cliente')
     if (cap <= 0) return Alert.alert('Capital inválido')
     if (n <= 0) return Alert.alert('Número de cuotas inválido')

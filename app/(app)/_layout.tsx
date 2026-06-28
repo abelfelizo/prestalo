@@ -1,7 +1,8 @@
-import { Tabs } from 'expo-router'
+import { Tabs, Redirect } from 'expo-router'
 import { Feather } from '@expo/vector-icons'
 import { BlurView } from 'expo-blur'
 import { StyleSheet, Platform } from 'react-native'
+import { useSession } from '@/store/session'
 import { color, font, radius, shadowCard } from '@/theme'
 
 type IconName = keyof typeof Feather.glyphMap
@@ -11,6 +12,11 @@ function tabIcon(name: IconName) {
 }
 
 export default function AppLayout() {
+  // Guard real: nadie entra a la app sin pasar el PIN/biometría (incluye deep links).
+  // El flujo de colaborador entra con desbloqueado=true ya seteado en index.tsx.
+  const desbloqueado = useSession((s) => s.desbloqueado)
+  if (!desbloqueado) return <Redirect href="/(auth)/lock" />
+
   return (
     <Tabs
       screenOptions={{

@@ -13,6 +13,7 @@ import {
   desglosarPago,
   calcularMora,
   diasMora,
+  hoyLocalISO,
   type TipoPagoApp,
 } from '@/lib/calculos'
 import { enviarComprobante } from '@/lib/whatsapp'
@@ -104,7 +105,7 @@ export default function RegistrarPago() {
         client_op_id: nuevoOpId(),
         prestamo_id: prestamo!.id,
         cliente_id: prestamo!.cliente_id,
-        fecha_pago: new Date().toISOString().slice(0, 10),
+        fecha_pago: hoyLocalISO(),
         tipo_pago: desglose!.tipo_pago,
         monto_total: desglose!.monto_total,
         monto_capital: desglose!.monto_capital,
