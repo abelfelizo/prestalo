@@ -61,3 +61,23 @@ Prioridad: 🔴 bloqueante antes de cobrar · 🟠 importante · 🟢 mejora/nov
 
 Las tareas **[Tú]** (Supabase Pro, rotar llave, RevenueCat, cuentas de tienda, legales) van en
 paralelo y no me bloquean para avanzar en el código.
+
+---
+
+## Actualización (cierre de tareas de código de Claude)
+
+**Completado y desplegado:**
+- ✅ Caché local **cifrada** (AES-256, clave en SecureStore; JS puro, vía OTA) — `src/lib/secureCache.ts`.
+- ✅ **Agregaciones en SQL**: `metricas_cartera` y `reporte_cartera` (migración 0017); dashboard y reportes ya no agregan en el cliente.
+- ✅ **Semáforo de riesgo** del cliente en el detalle.
+- ✅ **Accesibilidad**: `accessibilityLabel`/`role` en botones de solo icono (agregar, alertas, volver).
+- ✅ Partes 1–5 del brief (PR #2, ya en main).
+
+**Pendiente — requieren algo externo (no son código puro de Claude):**
+- 🔴 **Sentry / crash reporting**: necesita tu DSN + recompilar el APK (módulo nativo).
+- 🔴 **Exportar PDF / archivo**: necesita módulo nativo (`expo-print`/`expo-sharing`) → recompilar APK. Hoy el reporte se comparte como texto/CSV.
+- 🔴 **Recordatorios automáticos por WhatsApp**: WhatsApp no permite envío automático sin la **WhatsApp Business API** (cuenta/costo tuyo). La app ya manda recordatorio local diario y abre WhatsApp con el mensaje listo.
+- 🔴 **Precio en RD$ / plan anual**: decisión tuya + configuración en RevenueCat.
+- 🟡 **Roles de colaborador (solo lectura)**: la base existe; **aplicarlo** exige rediseñar RLS por tabla (cambio sensible) — requiere tu visto bueno de alcance.
+- 🟡 **Modo oscuro**: es una funcionalidad nueva grande (re-tematizar 26 pantallas), no una corrección; se agenda aparte.
+- 🟡 **Transferencia de cartera al heredero (fase 2)**: documentada en `docs/PROPUESTA_TRANSFERENCIA_HERENCIA.md`; requiere tu aprobación de diseño.

@@ -13,6 +13,12 @@ import { cobrarPorWhatsApp } from '@/lib/whatsapp'
 import { usePinPrompt } from '@/store/pinPrompt'
 import { color, font, radius, shadowCard, gradient } from '@/theme'
 
+function riesgoCliente(score: number) {
+  if (score >= 80) return { label: 'Riesgo bajo', color: '#34D399' }
+  if (score < 50) return { label: 'Riesgo alto', color: '#FCA5A5' }
+  return { label: 'Riesgo medio', color: '#FCD34D' }
+}
+
 function estadoTinte(estado: string) {
   if (estado === 'en_mora') return { bg: color.dangerTint, fg: color.danger, label: 'Mora' }
   if (estado === 'activo') return { bg: color.successTint, fg: color.success, label: 'Al día' }
@@ -51,12 +57,16 @@ export default function DetalleCliente() {
     <View style={s.container}>
       <View style={s.header}>
         <LinearGradient colors={gradient.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-        <TouchableOpacity style={s.back} onPress={() => router.back()}>
+        <TouchableOpacity style={s.back} accessibilityLabel="Volver" accessibilityRole="button" onPress={() => router.back()}>
           <Feather name="chevron-left" size={22} color="#fff" />
         </TouchableOpacity>
         <View style={s.avatar}><Text style={s.avatarText}>{c.nombre.slice(0, 2).toUpperCase()}</Text></View>
         <Text style={s.nombre}>{c.nombre}</Text>
         {!!c.telefono && <Text style={s.phone}>{c.telefono}</Text>}
+        <View style={s.riesgoChip}>
+          <View style={[s.riesgoDot, { backgroundColor: riesgoCliente(c.score).color }]} />
+          <Text style={s.riesgoText}>{riesgoCliente(c.score).label} · {c.score}/100</Text>
+        </View>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 40 }}>
@@ -135,6 +145,9 @@ const s = StyleSheet.create({
   avatarText: { fontFamily: font.display, fontSize: 24, color: color.primary },
   nombre: { fontFamily: font.display, fontSize: 20, color: '#fff', letterSpacing: -0.4 },
   phone: { fontFamily: font.body, fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 3 },
+  riesgoChip: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999 },
+  riesgoDot: { width: 7, height: 7, borderRadius: 4 },
+  riesgoText: { fontFamily: font.bodyBold, fontSize: 11.5, color: '#fff' },
   statsCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: color.surface, borderRadius: radius.card, padding: 18, marginTop: 16, ...shadowCard },
   stat: { flex: 1, alignItems: 'center' },
   statDivider: { width: 1, height: 28, backgroundColor: color.line },

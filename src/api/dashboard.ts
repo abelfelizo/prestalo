@@ -8,19 +8,14 @@ export interface MetricasCartera {
 }
 
 export async function getMetricas(carteraId: string): Promise<MetricasCartera> {
-  const { data, error } = await supabase
-    .from('prestamos')
-    .select('monto_capital, saldo_pendiente, estado, cliente_id')
-    .eq('cartera_id', carteraId)
-    .is('deleted_at', null)
+  // Agregación en el servidor (RPC) para escalar con muchos préstamos.
+  const { data, error } = await (supabase.rpc as any)('metricas_cartera', { p_cartera: carteraId })
   if (error) throw error
-
-  const rows = data ?? []
-  const activos = rows.filter((r) => r.estado === 'activo' || r.estado === 'en_mora')
+  const r = (Array.isArray(data) ? data[0] : data) ?? {}
   return {
-    capital_en_calle: activos.reduce((s, r) => s + Number(r.saldo_pendiente || 0), 0),
-    total_prestado: activos.reduce((s, r) => s + Number(r.monto_capital || 0), 0),
-    clientes_activos: new Set(activos.map((r) => r.cliente_id)).size,
-    prestamos_en_mora: rows.filter((r) => r.estado === 'en_mora').length,
+    capital_en_calle: Number(r.capital_en_calle || 0),
+    total_prestado: Number(r.total_prestado || 0),
+    clientes_activos: Number(r.clientes_activos || 0),
+    prestamos_en_mora: Number(r.prestamos_en_mora || 0),
   }
 }

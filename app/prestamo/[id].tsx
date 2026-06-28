@@ -102,7 +102,7 @@ export default function DetallePrestamo() {
 
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
-      <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+      <TouchableOpacity style={s.backBtn} accessibilityLabel="Volver" accessibilityRole="button" onPress={() => router.back()}>
         <Feather name="chevron-left" size={20} color={C.ink} />
       </TouchableOpacity>
       <Text style={s.cliente}>{p.clientes?.nombre ?? 'Cliente'}</Text>
