@@ -39,7 +39,7 @@ export default function Prestamos() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Préstamos</Text>
-        <TouchableOpacity style={s.addBtn} onPress={() => exigirSuscripcion(router) && router.push('/prestamo/nuevo')} activeOpacity={0.9}>
+        <TouchableOpacity style={s.addBtn} accessibilityLabel="Agregar préstamo" accessibilityRole="button" onPress={() => exigirSuscripcion(router) && router.push('/prestamo/nuevo')} activeOpacity={0.9}>
           <Feather name="plus" size={20} color="#fff" />
         </TouchableOpacity>
       </View>

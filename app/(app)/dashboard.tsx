@@ -89,7 +89,7 @@ export default function Dashboard() {
           <Text style={s.greet}>{saludo},</Text>
           <Text style={s.title} numberOfLines={1}>{primerNombre || 'Bienvenido'}</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/alertas')} style={s.bell}>
+        <TouchableOpacity onPress={() => router.push('/alertas')} style={s.bell} accessibilityLabel="Ver alertas" accessibilityRole="button">
           <Feather name="bell" size={20} color={color.ink} />
           {!!noLeidas.data && (
             <View style={s.badge}><Text style={s.badgeText}>{noLeidas.data > 9 ? '9+' : noLeidas.data}</Text></View>

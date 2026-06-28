@@ -1,8 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
+import { secureStorage } from '@/lib/secureCache'
 
-/** Persiste la caché de TanStack Query en AsyncStorage para lectura offline. */
+/** Persiste la caché de TanStack Query CIFRADA en disco para lectura offline. */
 export const asyncStoragePersister = createAsyncStoragePersister({
-  storage: AsyncStorage,
+  storage: secureStorage,
   key: 'prestalo-query-cache',
 })
