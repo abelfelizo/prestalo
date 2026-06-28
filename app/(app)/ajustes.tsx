@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { getCarterasAccesibles, setCarteraActiva, invitarColaborador, archivarCartera, getColaboradores, revocarColaborador } from '@/api/prestamistas'
+import { getCarterasAccesibles, setCarteraActiva, invitarColaborador, archivarCartera, getColaboradores, revocarColaborador, getMisPermisos, setPermisosColaborador, type PermisosColaborador } from '@/api/prestamistas'
 import { getHerederos, eliminarHeredero } from '@/api/herederos'
 import { signOut, eliminarCuenta } from '@/api/auth'
 import { limpiarPinLocal } from '@/lib/pin'
@@ -21,7 +21,7 @@ type IconName = keyof typeof Feather.glyphMap
 
 export default function Ajustes() {
   const router = useRouter()
-  const { prestamistaId, carteraActivaId, esColaborador, setCarteraActiva: setActivaLocal, setMoneda, reset } = useSession()
+  const { prestamistaId, carteraActivaId, esColaborador, setCarteraActiva: setActivaLocal, setMoneda, setPermisos, reset } = useSession()
   const { estado, diasRestantes } = useSuscripcion()
   const planLabel =
     estado === 'prueba' ? `Prueba · ${diasRestantes} días`
@@ -55,6 +55,16 @@ export default function Ajustes() {
     ])
   }
 
+  async function togglePermiso(col: { user_id: string; permisos: PermisosColaborador }, key: keyof PermisosColaborador) {
+    const nuevos = { ...col.permisos, [key]: !col.permisos?.[key] }
+    try {
+      await setPermisosColaborador(carteraActivaId!, col.user_id, nuevos)
+      colaboradores.refetch()
+    } catch (e: any) {
+      Alert.alert('Error', errMsg(e, 'No se pudo actualizar el permiso'))
+    }
+  }
+
   function quitarColaborador(userId: string, email: string) {
     pedirPin(async () => {
       try {
@@ -71,6 +81,7 @@ export default function Ajustes() {
     if (prestamistaId) await setCarteraActiva(prestamistaId, id).catch(() => {})
     setActivaLocal(id)
     setMoneda(moneda)
+    setPermisos(await getMisPermisos(id).catch(() => ({})))
     queryClient.invalidateQueries()
     Alert.alert('Cartera activa actualizada')
   }
@@ -202,12 +213,25 @@ export default function Ajustes() {
           </View>
           {(colaboradores.data ?? []).length > 0 && (
             <View style={{ marginTop: 12 }}>
+              <Text style={s.hint}>Toca un permiso para activarlo/desactivarlo.</Text>
               {(colaboradores.data ?? []).map((col) => (
                 <View key={col.user_id} style={s.colab}>
-                  <Text style={s.colabEmail} numberOfLines={1}>{col.email}</Text>
-                  <TouchableOpacity onPress={() => quitarColaborador(col.user_id, col.email)}>
-                    <Text style={s.colabQuitar}>Quitar</Text>
-                  </TouchableOpacity>
+                  <View style={s.colabTop}>
+                    <Text style={s.colabEmail} numberOfLines={1}>{col.email}</Text>
+                    <TouchableOpacity onPress={() => quitarColaborador(col.user_id, col.email)}>
+                      <Text style={s.colabQuitar}>Quitar</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={s.permRow}>
+                    {([['pagos', 'Pagos'], ['clientes', 'Clientes'], ['prestamos', 'Préstamos'], ['caja', 'Caja']] as [keyof PermisosColaborador, string][]).map(([key, label]) => {
+                      const on = !!col.permisos?.[key]
+                      return (
+                        <TouchableOpacity key={key} style={[s.permChip, on && s.permChipOn]} onPress={() => togglePermiso(col, key)} activeOpacity={0.8}>
+                          <Text style={[s.permChipText, on && s.permChipTextOn]}>{on ? '✓ ' : ''}{label}</Text>
+                        </TouchableOpacity>
+                      )
+                    })}
+                  </View>
                 </View>
               ))}
             </View>
@@ -281,9 +305,15 @@ const s = StyleSheet.create({
   shareInput: { flex: 1, backgroundColor: color.surface, borderRadius: radius.md, paddingHorizontal: 12, paddingVertical: 11, fontFamily: font.body, fontSize: 14, color: color.ink, ...shadowCard },
   shareBtn: { backgroundColor: color.primary, borderRadius: radius.md, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 6, justifyContent: 'center' },
   shareBtnText: { fontFamily: font.bodyBold, color: '#fff', fontSize: 14 },
-  colab: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: color.surface, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 11, marginBottom: 8, ...shadowCard },
+  colab: { backgroundColor: color.surface, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 11, marginBottom: 8, ...shadowCard },
+  colabTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   colabEmail: { flex: 1, fontFamily: font.bodySemi, fontSize: 13, color: color.ink, marginRight: 10 },
   colabQuitar: { fontFamily: font.bodyBold, fontSize: 13, color: color.danger },
+  permRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
+  permChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.sm, backgroundColor: color.bg, borderWidth: 1, borderColor: color.line },
+  permChipOn: { backgroundColor: color.primary, borderColor: color.primary },
+  permChipText: { fontFamily: font.bodySemi, fontSize: 12, color: color.muted },
+  permChipTextOn: { color: '#fff' },
   avisoHerencia: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: color.warningTint, borderRadius: radius.md, padding: 12, marginBottom: 10 },
   avisoHerenciaText: { flex: 1, fontFamily: font.bodySemi, fontSize: 12.5, color: color.warning },
   heredero: { backgroundColor: color.surface, borderRadius: radius.lg, padding: 14, marginBottom: 8, ...shadowCard },

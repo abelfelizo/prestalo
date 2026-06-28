@@ -24,6 +24,8 @@ export default function DetallePrestamo() {
   const moneda = useSession((s) => s.moneda)
   const carteraId = useSession((s) => s.carteraActivaId)
   const esColaborador = useSession((s) => s.esColaborador)
+  const permisos = useSession((s) => s.permisos)
+  const puedePrestamos = !esColaborador || !!permisos.prestamos
   const pedirPin = usePinPrompt((s) => s.pedirPin)
   const { id } = useLocalSearchParams<{ id: string }>()
 
@@ -120,12 +122,14 @@ export default function DetallePrestamo() {
         {p.dias_en_mora > 0 && <Row label="Días en mora" val={String(p.dias_en_mora)} />}
       </View>
 
-      <TouchableOpacity activeOpacity={0.9} onPress={() => router.push(`/pago/${p.id}`)} style={s.primaryWrap}>
-        <LinearGradient colors={gradient.buttonSuccess} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.primaryBtn}>
-          <Feather name="check-circle" size={18} color="#fff" />
-          <Text style={s.primaryText}>Registrar pago</Text>
-        </LinearGradient>
-      </TouchableOpacity>
+      {(!esColaborador || !!permisos.pagos) && (
+        <TouchableOpacity activeOpacity={0.9} onPress={() => router.push(`/pago/${p.id}`)} style={s.primaryWrap}>
+          <LinearGradient colors={gradient.buttonSuccess} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.primaryBtn}>
+            <Feather name="check-circle" size={18} color="#fff" />
+            <Text style={s.primaryText}>Registrar pago</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
 
       <View style={s.tiles}>
         {!!p.clientes?.telefono && (
@@ -134,13 +138,13 @@ export default function DetallePrestamo() {
             <Text style={s.tileText}>Cobrar</Text>
           </TouchableOpacity>
         )}
-        {activo && !esColaborador && (
+        {activo && puedePrestamos && (
           <TouchableOpacity style={s.tile} activeOpacity={0.8} onPress={prorrogar}>
             <View style={s.tileIcon}><Feather name="clock" size={18} color={C.primary} /></View>
             <Text style={s.tileText}>Prórroga</Text>
           </TouchableOpacity>
         )}
-        {activo && !esColaborador && (
+        {activo && puedePrestamos && (
           <TouchableOpacity style={s.tile} activeOpacity={0.8} onPress={() => router.push(`/prestamo/refinanciar?id=${p.id}`)}>
             <View style={s.tileIcon}><Feather name="refresh-cw" size={18} color={C.primary} /></View>
             <Text style={s.tileText}>Refinanciar</Text>
@@ -148,7 +152,7 @@ export default function DetallePrestamo() {
         )}
       </View>
 
-      {activo && !esColaborador && p.cuotas_pagadas === 0 && (
+      {activo && puedePrestamos && p.cuotas_pagadas === 0 && (
         <TouchableOpacity style={s.ghost} onPress={() => router.push(`/prestamo/nuevo?id=${p.id}`)} activeOpacity={0.8}>
           <Feather name="edit-2" size={15} color={C.ink} />
           <Text style={s.ghostText}>Editar préstamo</Text>
@@ -183,7 +187,7 @@ export default function DetallePrestamo() {
             <Text style={s.itemTitle}>{g.tipo}</Text>
             {!!g.descripcion && <Text style={s.itemSub}>{g.descripcion}</Text>}
             <Text style={s.itemSub}>{g.estado}</Text>
-            {!esColaborador && (
+            {puedePrestamos && (
               <View style={s.gRow}>
                 <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}&id=${g.id}`)}>
                   <Text style={s.linkSmall}>Editar</Text>
@@ -208,7 +212,7 @@ export default function DetallePrestamo() {
           </View>
         ))
       )}
-      {!esColaborador && (
+      {puedePrestamos && (
         <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}`)}>
           <Text style={s.link}>+ Agregar garantía</Text>
         </TouchableOpacity>

@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { View, ActivityIndicator } from 'react-native'
 import { getUsuarioActual } from '@/api/auth'
-import { getPrestamista, getCartera, getCarterasAccesibles, registrarActividad } from '@/api/prestamistas'
+import { getPrestamista, getCartera, getCarterasAccesibles, registrarActividad, getMisPermisos } from '@/api/prestamistas'
 import { programarRecordatorioDiario, registrarPush } from '@/lib/notificaciones'
 import { initIAP, sincronizarSuscripcion } from '@/lib/iap'
 import { useSession } from '@/store/session'
@@ -11,7 +11,7 @@ import { color as COLORS } from '@/theme'
 
 export default function Index() {
   const router = useRouter()
-  const { setPrestamista, setCarteraActiva, setMoneda, setDesbloqueado, setEsColaborador } = useSession()
+  const { setPrestamista, setCarteraActiva, setMoneda, setDesbloqueado, setEsColaborador, setPermisos } = useSession()
 
   useEffect(() => {
     ;(async () => {
@@ -31,6 +31,7 @@ export default function Index() {
             // Entra con desbloqueado=true. El PIN para colaboradores queda como mejora futura.
             useSuscripcion.getState().set('activa', 0)
             setEsColaborador(true)
+            setPermisos(await getMisPermisos(compartidas[0].id).catch(() => ({})))
             setCarteraActiva(compartidas[0].id)
             setMoneda(compartidas[0].moneda)
             setDesbloqueado(true)
@@ -42,6 +43,7 @@ export default function Index() {
         }
         setPrestamista(prest.id)
         setEsColaborador(false)
+        setPermisos({ dueno: true, pagos: true, clientes: true, prestamos: true, caja: true })
         await initIAP(prest.id)
         sincronizarSuscripcion(prest.created_at).catch(() => {})
         registrarActividad(prest.id).catch(() => {})

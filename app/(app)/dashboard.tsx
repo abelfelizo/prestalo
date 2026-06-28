@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router'
 import { getMetricas } from '@/api/dashboard'
 import { getProximosCobros } from '@/api/prestamos'
 import { contarNoLeidas } from '@/api/alertas'
-import { getCarterasAccesibles, setCarteraActiva as setCarteraActivaApi, getPrestamista } from '@/api/prestamistas'
+import { getCarterasAccesibles, setCarteraActiva as setCarteraActivaApi, getPrestamista, getMisPermisos } from '@/api/prestamistas'
 import { contarPendientes, flush, contarFallidas, reintentarFallidas } from '@/lib/outbox'
 import { queryClient } from '@/lib/queryClient'
 import { useFmt } from '@/lib/useFmt'
@@ -29,6 +29,7 @@ export default function Dashboard() {
   const prestamistaId = useSession((s) => s.prestamistaId)
   const setCarteraActivaLocal = useSession((s) => s.setCarteraActiva)
   const setMoneda = useSession((s) => s.setMoneda)
+  const setPermisos = useSession((s) => s.setPermisos)
 
   const carteras = useQuery({ queryKey: ['carteras-accesibles'], queryFn: getCarterasAccesibles })
   const prestamista = useQuery({ queryKey: ['prestamista', prestamistaId], queryFn: () => getPrestamista(prestamistaId!), enabled: !!prestamistaId })
@@ -42,6 +43,7 @@ export default function Dashboard() {
     if (prestamistaId) await setCarteraActivaApi(prestamistaId, c.id).catch(() => {})
     setCarteraActivaLocal(c.id)
     setMoneda(c.moneda)
+    setPermisos(await getMisPermisos(c.id).catch(() => ({})))
     queryClient.invalidateQueries()
   }
 

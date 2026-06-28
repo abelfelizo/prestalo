@@ -27,6 +27,8 @@ export default function Caja() {
   const f = useFmt()
   const carteraId = useSession((s) => s.carteraActivaId)
   const esColaborador = useSession((s) => s.esColaborador)
+  const permisos = useSession((s) => s.permisos)
+  const puedeCrear = !esColaborador || !!permisos.caja
   const pedirPin = usePinPrompt((s) => s.pedirPin)
 
   const balance = useQuery({ queryKey: ['caja-balance', carteraId], queryFn: () => getBalanceCaja(carteraId!), enabled: !!carteraId })
@@ -38,7 +40,7 @@ export default function Caja() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Caja</Text>
-        {!esColaborador && (
+        {puedeCrear && (
           <TouchableOpacity style={s.addBtn} accessibilityLabel="Agregar movimiento de caja" accessibilityRole="button" onPress={() => exigirSuscripcion(router) && router.push('/caja/nuevo')} activeOpacity={0.9}>
             <Feather name="plus" size={20} color="#fff" />
           </TouchableOpacity>

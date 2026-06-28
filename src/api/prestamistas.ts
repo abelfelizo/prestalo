@@ -100,21 +100,42 @@ export async function archivarCartera(id: string): Promise<void> {
   if (error) throw error
 }
 
+export interface PermisosColaborador {
+  pagos?: boolean
+  clientes?: boolean
+  prestamos?: boolean
+  caja?: boolean
+}
+
 export interface Colaborador {
   user_id: string
   email: string
   rol: string
+  permisos: PermisosColaborador
 }
 
 /** Lista los colaboradores con acceso a una cartera (solo el dueño). */
 export async function getColaboradores(carteraId: string): Promise<Colaborador[]> {
   const { data, error } = await (supabase.rpc as any)('colaboradores_de_cartera', { p_cartera: carteraId })
   if (error) throw error
-  return (data as Colaborador[]) ?? []
+  return ((data as any[]) ?? []).map((c) => ({ ...c, permisos: c.permisos ?? {} }))
 }
 
 /** Revoca el acceso de un colaborador a una cartera (solo el dueño). */
 export async function revocarColaborador(carteraId: string, userId: string): Promise<void> {
   const { error } = await (supabase.rpc as any)('revocar_colaborador', { p_cartera: carteraId, p_user: userId })
   if (error) throw error
+}
+
+/** El dueño define los permisos de un colaborador. */
+export async function setPermisosColaborador(carteraId: string, userId: string, permisos: PermisosColaborador): Promise<void> {
+  const { error } = await (supabase.rpc as any)('set_permisos_colaborador', { p_cartera: carteraId, p_user: userId, p_permisos: permisos })
+  if (error) throw error
+}
+
+/** Permisos del usuario actual sobre una cartera (el dueño tiene todos). */
+export async function getMisPermisos(carteraId: string): Promise<Record<string, boolean>> {
+  const { data, error } = await (supabase.rpc as any)('mis_permisos_cartera', { p_cartera: carteraId })
+  if (error) throw error
+  return (data as Record<string, boolean>) ?? {}
 }
