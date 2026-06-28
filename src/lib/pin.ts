@@ -93,6 +93,18 @@ export async function limpiarFallosPin(): Promise<void> {
 }
 
 // ---- Biometría ----
+const BIO_KEY = 'kuotas_bio_activa'
+
+/** ¿El usuario activó el desbloqueo por biometría? (por defecto sí, si el equipo la soporta) */
+export async function biometriaActiva(): Promise<boolean> {
+  const v = await SecureStore.getItemAsync(BIO_KEY)
+  return v !== 'false'
+}
+
+export async function setBiometriaActiva(activa: boolean): Promise<void> {
+  await SecureStore.setItemAsync(BIO_KEY, activa ? 'true' : 'false')
+}
+
 export async function biometriaDisponible(): Promise<boolean> {
   const [hw, enrolled] = await Promise.all([
     LocalAuthentication.hasHardwareAsync(),

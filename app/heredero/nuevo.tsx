@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native'
 import { errMsg } from '@/lib/errores'
-import { useRouter } from 'expo-router'
-import { useMutation } from '@tanstack/react-query'
-import { crearHeredero } from '@/api/herederos'
+import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { crearHeredero, editarHeredero, getHerederos } from '@/api/herederos'
 import { hashPin } from '@/lib/pin'
 import { telefonoValido } from '@/lib/validar'
 import { queryClient } from '@/lib/queryClient'
@@ -17,22 +17,47 @@ const RELACIONES = ['familiar', 'socio', 'amigo', 'abogado'] as const
 export default function NuevoHeredero() {
   const router = useRouter()
   const prestamistaId = useSession((s) => s.prestamistaId)
+  const { id } = useLocalSearchParams<{ id?: string }>()
+  const editando = !!id
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [relacion, setRelacion] = useState<(typeof RELACIONES)[number]>('familiar')
   const [clave, setClave] = useState('')
   const [dias, setDias] = useState('30')
 
+  const existentes = useQuery({ queryKey: ['herederos', prestamistaId], queryFn: () => getHerederos(prestamistaId!), enabled: editando && !!prestamistaId })
+  useEffect(() => {
+    const h = existentes.data?.find((x) => x.id === id)
+    if (h) {
+      setNombre(h.nombre)
+      setTelefono(h.telefono)
+      setRelacion((RELACIONES as readonly string[]).includes(h.relacion) ? (h.relacion as (typeof RELACIONES)[number]) : 'familiar')
+      setDias(String(h.dias_inactividad))
+    }
+  }, [existentes.data])
+
   const mut = useMutation({
-    mutationFn: async () =>
-      crearHeredero({
+    mutationFn: async () => {
+      if (editando) {
+        // Al editar, la clave solo cambia si el dueño escribió una nueva.
+        const patch: Record<string, unknown> = {
+          nombre: nombre.trim(),
+          telefono: telefono.trim(),
+          relacion,
+          dias_inactividad: parseInt(dias, 10) || 30,
+        }
+        if (clave.trim()) patch.clave_hash = await hashPin(clave)
+        return editarHeredero(id!, patch)
+      }
+      return crearHeredero({
         prestamista_id: prestamistaId!,
         nombre: nombre.trim(),
         telefono: telefono.trim(),
         relacion,
         clave_hash: await hashPin(clave),
         dias_inactividad: parseInt(dias, 10) || 30,
-      }),
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['herederos', prestamistaId] })
       router.back()
@@ -44,13 +69,14 @@ export default function NuevoHeredero() {
     if (!exigirSuscripcion(router)) return
     if (!nombre.trim()) return Alert.alert('Falta el nombre')
     if (!telefonoValido(telefono)) return Alert.alert('Teléfono inválido', 'Debe tener entre 7 y 15 dígitos.')
-    if (clave.length < 6) return Alert.alert('Clave muy corta', 'Mínimo 6 caracteres')
+    if (!editando && clave.length < 6) return Alert.alert('Clave muy corta', 'Mínimo 6 caracteres')
+    if (editando && clave.trim() && clave.length < 6) return Alert.alert('Clave muy corta', 'Mínimo 6 caracteres')
     mut.mutate()
   }
 
   return (
     <ScrollView style={s.container} contentContainerStyle={{ padding: 20, paddingTop: 56 }}>
-      <Text style={s.title}>Nuevo heredero</Text>
+      <Text style={s.title}>{editando ? 'Editar heredero' : 'Nuevo heredero'}</Text>
       <Text style={s.sub}>Si dejas de usar la app por los días indicados, esta persona podrá acceder a la información con su clave.</Text>
 
       <Text style={s.label}>Nombre *</Text>
@@ -67,8 +93,8 @@ export default function NuevoHeredero() {
         ))}
       </View>
 
-      <Text style={s.label}>Clave de acceso *</Text>
-      <TextInput style={s.input} value={clave} onChangeText={setClave} placeholder="Clave para el heredero" placeholderTextColor="#bbb" secureTextEntry />
+      <Text style={s.label}>{editando ? 'Nueva clave (opcional)' : 'Clave de acceso *'}</Text>
+      <TextInput style={s.input} value={clave} onChangeText={setClave} placeholder={editando ? 'Déjala vacía para no cambiarla' : 'Clave para el heredero'} placeholderTextColor="#bbb" secureTextEntry />
       <Text style={s.label}>Días de inactividad para activar</Text>
       <TextInput style={s.input} value={dias} onChangeText={setDias} placeholder="30" placeholderTextColor="#bbb" keyboardType="numeric" />
 

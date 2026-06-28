@@ -75,3 +75,46 @@ export async function setCarteraActiva(prestamistaId: string, carteraId: string)
     .eq('id', prestamistaId)
   if (error) throw error
 }
+
+/** Edita datos del perfil del prestamista. */
+export async function editarPerfil(
+  id: string,
+  patch: Partial<Pick<Inserts<'prestamistas'>, 'nombre' | 'telefono' | 'metodo_seguridad'>>,
+): Promise<void> {
+  const { error } = await supabase.from('prestamistas').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+/** Edita nombre/color/moneda de una cartera. */
+export async function editarCartera(
+  id: string,
+  patch: Partial<Pick<Inserts<'carteras'>, 'nombre' | 'color' | 'moneda'>>,
+): Promise<void> {
+  const { error } = await supabase.from('carteras').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+/** Archiva una cartera (no se borra; deja de listarse). */
+export async function archivarCartera(id: string): Promise<void> {
+  const { error } = await supabase.from('carteras').update({ activa: false }).eq('id', id)
+  if (error) throw error
+}
+
+export interface Colaborador {
+  user_id: string
+  email: string
+  rol: string
+}
+
+/** Lista los colaboradores con acceso a una cartera (solo el dueño). */
+export async function getColaboradores(carteraId: string): Promise<Colaborador[]> {
+  const { data, error } = await (supabase.rpc as any)('colaboradores_de_cartera', { p_cartera: carteraId })
+  if (error) throw error
+  return (data as Colaborador[]) ?? []
+}
+
+/** Revoca el acceso de un colaborador a una cartera (solo el dueño). */
+export async function revocarColaborador(carteraId: string, userId: string): Promise<void> {
+  const { error } = await (supabase.rpc as any)('revocar_colaborador', { p_cartera: carteraId, p_user: userId })
+  if (error) throw error
+}

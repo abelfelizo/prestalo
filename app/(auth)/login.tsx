@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { LinearGradient } from 'expo-linear-gradient'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-import { signIn, signUp } from '@/api/auth'
+import { signIn, signUp, enviarResetPassword } from '@/api/auth'
 import { emailValido } from '@/lib/validar'
 import { errMsg } from '@/lib/errores'
 import { color, font, gradient, radius, shadowRaised } from '@/theme'
@@ -47,6 +47,18 @@ export default function Login() {
       Alert.alert('Error', errMsg(e, 'No se pudo iniciar sesión. Verifica tus datos.'))
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function olvideContrasena() {
+    if (!emailValido(email)) {
+      return Alert.alert('Escribe tu correo', 'Primero escribe tu correo arriba para enviarte el enlace.')
+    }
+    try {
+      await enviarResetPassword(email)
+      Alert.alert('Revisa tu correo', 'Te enviamos un enlace para restablecer tu contraseña.')
+    } catch (e: any) {
+      Alert.alert('Error', errMsg(e, 'No se pudo enviar el enlace.'))
     }
   }
 
@@ -100,6 +112,12 @@ export default function Login() {
           )}
         </TouchableOpacity>
 
+        {modo === 'entrar' && (
+          <TouchableOpacity onPress={olvideContrasena}>
+            <Text style={s.forgot}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity onPress={() => setModo(modo === 'entrar' ? 'crear' : 'entrar')}>
           <Text style={s.toggle}>
             {modo === 'entrar' ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
@@ -132,7 +150,8 @@ const s = StyleSheet.create({
   },
   btn: { backgroundColor: '#fff', borderRadius: radius.lg, paddingVertical: 16, alignItems: 'center', marginTop: 18, ...shadowRaised, shadowColor: '#000', shadowOpacity: 0.2 },
   btnText: { fontFamily: font.bodyBold, fontSize: 15, color: color.primary },
-  toggle: { fontFamily: font.body, fontSize: 14, color: 'rgba(255,255,255,0.85)', textAlign: 'center', marginTop: 22 },
+  forgot: { fontFamily: font.bodySemi, fontSize: 13, color: 'rgba(255,255,255,0.8)', textAlign: 'center', marginTop: 18 },
+  toggle: { fontFamily: font.body, fontSize: 14, color: 'rgba(255,255,255,0.85)', textAlign: 'center', marginTop: 16 },
   toggleAccent: { fontFamily: font.bodyBold, color: color.cyanLight },
   heredero: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 18 },
   herederoText: { fontFamily: font.bodySemi, fontSize: 13, color: 'rgba(255,255,255,0.7)' },
