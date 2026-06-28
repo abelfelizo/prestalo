@@ -11,7 +11,7 @@ import { color as COLORS } from '@/theme'
 
 export default function Index() {
   const router = useRouter()
-  const { setPrestamista, setCarteraActiva, setMoneda, setDesbloqueado } = useSession()
+  const { setPrestamista, setCarteraActiva, setMoneda, setDesbloqueado, setEsColaborador } = useSession()
 
   useEffect(() => {
     ;(async () => {
@@ -30,6 +30,7 @@ export default function Index() {
             // DECISIÓN DE PRODUCTO (intencional): el colaborador NO pasa por PIN local.
             // Entra con desbloqueado=true. El PIN para colaboradores queda como mejora futura.
             useSuscripcion.getState().set('activa', 0)
+            setEsColaborador(true)
             setCarteraActiva(compartidas[0].id)
             setMoneda(compartidas[0].moneda)
             setDesbloqueado(true)
@@ -40,6 +41,7 @@ export default function Index() {
           return
         }
         setPrestamista(prest.id)
+        setEsColaborador(false)
         await initIAP(prest.id)
         sincronizarSuscripcion(prest.created_at).catch(() => {})
         registrarActividad(prest.id).catch(() => {})

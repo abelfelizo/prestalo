@@ -30,6 +30,7 @@ export default function DetalleCliente() {
   const f = useFmt()
   const moneda = useSession((s) => s.moneda)
   const carteraId = useSession((s) => s.carteraActivaId)
+  const esColaborador = useSession((s) => s.esColaborador)
   const pedirPin = usePinPrompt((s) => s.pedirPin)
   const { id } = useLocalSearchParams<{ id: string }>()
 
@@ -91,16 +92,18 @@ export default function DetalleCliente() {
           </TouchableOpacity>
         )}
 
-        <View style={s.editRow}>
-          <TouchableOpacity style={s.editBtn} onPress={() => router.push(`/cliente/nuevo?id=${id}`)} activeOpacity={0.8}>
-            <Feather name="edit-2" size={15} color={color.ink} />
-            <Text style={s.editText}>Editar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.delBtn} onPress={eliminar} activeOpacity={0.8}>
-            <Feather name="trash-2" size={15} color={color.danger} />
-            <Text style={s.delText}>Eliminar</Text>
-          </TouchableOpacity>
-        </View>
+        {!esColaborador && (
+          <View style={s.editRow}>
+            <TouchableOpacity style={s.editBtn} onPress={() => router.push(`/cliente/nuevo?id=${id}`)} activeOpacity={0.8}>
+              <Feather name="edit-2" size={15} color={color.ink} />
+              <Text style={s.editText}>Editar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.delBtn} onPress={eliminar} activeOpacity={0.8}>
+              <Feather name="trash-2" size={15} color={color.danger} />
+              <Text style={s.delText}>Eliminar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <Text style={s.section}>Préstamos</Text>
         {(prestamos.data ?? []).length === 0 ? (

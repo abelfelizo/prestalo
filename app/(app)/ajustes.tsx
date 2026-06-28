@@ -21,7 +21,7 @@ type IconName = keyof typeof Feather.glyphMap
 
 export default function Ajustes() {
   const router = useRouter()
-  const { prestamistaId, carteraActivaId, setCarteraActiva: setActivaLocal, setMoneda, reset } = useSession()
+  const { prestamistaId, carteraActivaId, esColaborador, setCarteraActiva: setActivaLocal, setMoneda, reset } = useSession()
   const { estado, diasRestantes } = useSuscripcion()
   const planLabel =
     estado === 'prueba' ? `Prueba · ${diasRestantes} días`
@@ -168,7 +168,7 @@ export default function Ajustes() {
             key={c.id}
             style={s.cartera}
             onPress={() => cambiarCartera(c.id, c.moneda)}
-            onLongPress={() => gestionarCartera(c)}
+            onLongPress={esColaborador ? undefined : () => gestionarCartera(c)}
             activeOpacity={0.7}
           >
             <View style={[s.dot, { backgroundColor: COLOR_CARTERA[c.color as ColorCartera] ?? color.primary }]} />
@@ -178,8 +178,8 @@ export default function Ajustes() {
           </TouchableOpacity>
         ))
       )}
-      <Text style={s.hint}>Mantén presionada una cartera para editarla o archivarla.</Text>
-      <Fila icon="plus-circle" label="Nueva cartera" onPress={() => router.push('/cartera/nueva')} />
+      {!esColaborador && <Text style={s.hint}>Mantén presionada una cartera para editarla o archivarla.</Text>}
+      {!esColaborador && <Fila icon="plus-circle" label="Nueva cartera" onPress={() => router.push('/cartera/nueva')} />}
 
       {!!prestamistaId && (
         <>

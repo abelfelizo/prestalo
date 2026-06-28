@@ -21,6 +21,7 @@ export default function Prestamos() {
   const router = useRouter()
   const f = useFmt()
   const carteraId = useSession((s) => s.carteraActivaId)
+  const esColaborador = useSession((s) => s.esColaborador)
   const [q, setQ] = useState('')
   const { data, isLoading } = useQuery({
     queryKey: ['prestamos', carteraId],
@@ -39,9 +40,11 @@ export default function Prestamos() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Préstamos</Text>
-        <TouchableOpacity style={s.addBtn} accessibilityLabel="Agregar préstamo" accessibilityRole="button" onPress={() => exigirSuscripcion(router) && router.push('/prestamo/nuevo')} activeOpacity={0.9}>
-          <Feather name="plus" size={20} color="#fff" />
-        </TouchableOpacity>
+        {!esColaborador && (
+          <TouchableOpacity style={s.addBtn} accessibilityLabel="Agregar préstamo" accessibilityRole="button" onPress={() => exigirSuscripcion(router) && router.push('/prestamo/nuevo')} activeOpacity={0.9}>
+            <Feather name="plus" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
       </View>
       <View style={s.body}>
         <AvisoSuscripcion />

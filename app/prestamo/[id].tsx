@@ -23,6 +23,7 @@ export default function DetallePrestamo() {
   const f = useFmt()
   const moneda = useSession((s) => s.moneda)
   const carteraId = useSession((s) => s.carteraActivaId)
+  const esColaborador = useSession((s) => s.esColaborador)
   const pedirPin = usePinPrompt((s) => s.pedirPin)
   const { id } = useLocalSearchParams<{ id: string }>()
 
@@ -133,13 +134,13 @@ export default function DetallePrestamo() {
             <Text style={s.tileText}>Cobrar</Text>
           </TouchableOpacity>
         )}
-        {activo && (
+        {activo && !esColaborador && (
           <TouchableOpacity style={s.tile} activeOpacity={0.8} onPress={prorrogar}>
             <View style={s.tileIcon}><Feather name="clock" size={18} color={C.primary} /></View>
             <Text style={s.tileText}>Prórroga</Text>
           </TouchableOpacity>
         )}
-        {activo && (
+        {activo && !esColaborador && (
           <TouchableOpacity style={s.tile} activeOpacity={0.8} onPress={() => router.push(`/prestamo/refinanciar?id=${p.id}`)}>
             <View style={s.tileIcon}><Feather name="refresh-cw" size={18} color={C.primary} /></View>
             <Text style={s.tileText}>Refinanciar</Text>
@@ -147,13 +148,13 @@ export default function DetallePrestamo() {
         )}
       </View>
 
-      {activo && p.cuotas_pagadas === 0 && (
+      {activo && !esColaborador && p.cuotas_pagadas === 0 && (
         <TouchableOpacity style={s.ghost} onPress={() => router.push(`/prestamo/nuevo?id=${p.id}`)} activeOpacity={0.8}>
           <Feather name="edit-2" size={15} color={C.ink} />
           <Text style={s.ghostText}>Editar préstamo</Text>
         </TouchableOpacity>
       )}
-      {activo && (
+      {activo && !esColaborador && (
         <TouchableOpacity style={s.ghostDanger} onPress={cancelar} activeOpacity={0.8}>
           <Text style={s.ghostDangerText}>Cancelar préstamo</Text>
         </TouchableOpacity>
@@ -182,39 +183,43 @@ export default function DetallePrestamo() {
             <Text style={s.itemTitle}>{g.tipo}</Text>
             {!!g.descripcion && <Text style={s.itemSub}>{g.descripcion}</Text>}
             <Text style={s.itemSub}>{g.estado}</Text>
-            <View style={s.gRow}>
-              <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}&id=${g.id}`)}>
-                <Text style={s.linkSmall}>Editar</Text>
-              </TouchableOpacity>
-              {g.estado === 'en_poder' && (
-                <TouchableOpacity onPress={() => devolver(g.id)}>
-                  <Text style={s.linkSmall}>Marcar como devuelta</Text>
+            {!esColaborador && (
+              <View style={s.gRow}>
+                <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}&id=${g.id}`)}>
+                  <Text style={s.linkSmall}>Editar</Text>
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                onPress={() =>
-                  pedirPin(async () => {
-                    await eliminarGarantia(g.id)
-                    queryClient.invalidateQueries({ queryKey: ['garantias', id] })
-                  }, 'PIN para eliminar la garantía')
-                }
-              >
-                <Text style={s.anular}>Eliminar</Text>
-              </TouchableOpacity>
-            </View>
+                {g.estado === 'en_poder' && (
+                  <TouchableOpacity onPress={() => devolver(g.id)}>
+                    <Text style={s.linkSmall}>Marcar como devuelta</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  onPress={() =>
+                    pedirPin(async () => {
+                      await eliminarGarantia(g.id)
+                      queryClient.invalidateQueries({ queryKey: ['garantias', id] })
+                    }, 'PIN para eliminar la garantía')
+                  }
+                >
+                  <Text style={s.anular}>Eliminar</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         ))
       )}
-      <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}`)}>
-        <Text style={s.link}>+ Agregar garantía</Text>
-      </TouchableOpacity>
+      {!esColaborador && (
+        <TouchableOpacity onPress={() => router.push(`/garantia/nueva?prestamoId=${p.id}`)}>
+          <Text style={s.link}>+ Agregar garantía</Text>
+        </TouchableOpacity>
+      )}
 
       <Text style={s.section}>Historial de pagos</Text>
       {(pagos.data ?? []).length === 0 ? (
         <Text style={s.empty}>Sin pagos registrados</Text>
       ) : (
         (pagos.data ?? []).map((pg) => (
-          <TouchableOpacity key={pg.id} style={s.item} activeOpacity={0.7} delayLongPress={600} onLongPress={() => anular(pg.id)}>
+          <TouchableOpacity key={pg.id} style={s.item} activeOpacity={esColaborador ? 1 : 0.7} delayLongPress={600} onLongPress={esColaborador ? undefined : () => anular(pg.id)}>
             <View style={s.itemRow}>
               <Text style={s.itemTitle}>{f(pg.monto_total)}</Text>
               <Text style={s.itemSub}>{pg.fecha_pago}</Text>
@@ -223,7 +228,7 @@ export default function DetallePrestamo() {
               Capital {f(pg.monto_capital)} · Interés {f(pg.monto_interes)}
               {Number(pg.monto_mora) > 0 ? ` · Mora ${f(pg.monto_mora)}` : ''}
             </Text>
-            <Text style={s.anularHint}>Mantén presionado para anular</Text>
+            {!esColaborador && <Text style={s.anularHint}>Mantén presionado para anular</Text>}
           </TouchableOpacity>
         ))
       )}

@@ -18,6 +18,7 @@ function tintePorScore(score: number) {
 export default function Clientes() {
   const router = useRouter()
   const carteraId = useSession((s) => s.carteraActivaId)
+  const esColaborador = useSession((s) => s.esColaborador)
   const [q, setQ] = useState('')
   const { data, isLoading } = useQuery({
     queryKey: ['clientes', carteraId],
@@ -36,9 +37,11 @@ export default function Clientes() {
     <View style={s.container}>
       <View style={s.header}>
         <Text style={s.title}>Clientes</Text>
-        <TouchableOpacity style={s.addBtn} accessibilityLabel="Agregar cliente" accessibilityRole="button" onPress={() => exigirSuscripcion(router) && router.push('/cliente/nuevo')} activeOpacity={0.9}>
-          <Feather name="plus" size={20} color="#fff" />
-        </TouchableOpacity>
+        {!esColaborador && (
+          <TouchableOpacity style={s.addBtn} accessibilityLabel="Agregar cliente" accessibilityRole="button" onPress={() => exigirSuscripcion(router) && router.push('/cliente/nuevo')} activeOpacity={0.9}>
+            <Feather name="plus" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
       </View>
       <View style={s.body}>
         <AvisoSuscripcion />
